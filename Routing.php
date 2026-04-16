@@ -29,10 +29,16 @@ class Routing {
             "controller" => "DashboardController",
             "action" => "index" // inna akcja dla konkretnego elementu
         ],
+        "^register$" => [
+            "controller" => "SecurityController",
+            "action" => "register"
+        ],
+
         "^$" => [ // Strona główna
             "controller" => "SecurityController",
             "action" => "login"
         ]
+        
     ];
 
     public static function run(string $path) {
