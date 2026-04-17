@@ -12,6 +12,15 @@ class AppController {
         return $_SERVER["REQUEST_METHOD"] === 'POST';
     }
  
+    protected function requireLogin(): void
+    {
+        if (empty($_SESSION['user_id'])) {
+            $url = "http://$_SERVER[HTTP_HOST]";
+            header("Location: {$url}/login");
+            exit();
+        }
+    }
+
     protected function render(string $template = null, array $variables = [])
     {
         $templatePath = 'public/views/'. $template.'.html';

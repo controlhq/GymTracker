@@ -33,6 +33,10 @@ class Routing {
             "controller" => "SecurityController",
             "action" => "register"
         ],
+        "^logout$" => [
+            "controller" => "SecurityController",
+            "action" => "logout"
+        ],
 
         "^$" => [ // Strona główna
             "controller" => "SecurityController",
