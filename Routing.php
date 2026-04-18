@@ -4,6 +4,7 @@ require_once 'src/controllers/SecurityController.php';
 require_once 'src/controllers/DashboardController.php';
 require_once 'src/controllers/WorkoutsController.php';
 require_once 'src/controllers/ExercisesController.php';
+require_once 'src/controllers/AnalyticsController.php';
 
 // TODO musimy zapewnic, ze utworzony 
 // obiekt kontrollera ma tylko jedna instancję - SINGLETON
@@ -30,6 +31,10 @@ class Routing {
         "^dashboard/([0-9]+)$" => [
             "controller" => "DashboardController",
             "action" => "index" // inna akcja dla konkretnego elementu
+        ],
+        "^analytics$" => [
+            "controller" => "AnalyticsController",
+            "action" => "index"
         ],
         "^exercises$" => [
             "controller" => "ExercisesController",
