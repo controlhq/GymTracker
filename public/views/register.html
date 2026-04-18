@@ -4,22 +4,20 @@
     <?php include __DIR__ . '/partials/head.html'; ?>
   </head>
   <body>
-    <form method="POST" action="\register">
+    <form method="POST" action="/register">
       <h1>REGISTER FORM</h1>
 
       <?php if(isset($messages)): ?>
-
       <p class="messages">
         <?= $messages ?>
       </p>
-
       <?php endif; ?>
-      <input name="email" type="email" placeholder="Twój email" />
-      <input name="password" type="password" placeholder="Twoje hasło" />
-      <input name="password2" type="password" placeholder="Powtórz hasło" />
 
-      <input name="firstName" type="text" placeholder="Imie" />
-      <input name="lastName" type="text" placeholder="Nazwisko" />
+      <input name="username" type="text" placeholder="Username" />
+      <input name="email" type="email" placeholder="Email" />
+      <input name="password" type="password" placeholder="Password" />
+      <input name="password2" type="password" placeholder="Repeat password" />
+
       <button type="submit">REGISTER</button>
     </form>
   </body>

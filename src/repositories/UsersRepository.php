@@ -1,54 +1,59 @@
 <?php
 
 require_once 'Repository.php';
+require_once __DIR__ . '/../entity/User.php';
 
-class UsersRepository extends Repository {
-
-    public function getUsers(): ?array 
+class UsersRepository extends Repository
+{
+    public function getUsers(): array
     {
-        $query = $this->database->connect()->prepare(
-            "
-            SELECT * FROM users;
-            "
-        );
+        $query = $this->database->connect()->prepare('SELECT * FROM users');
         $query->execute();
 
-        $users = $query->fetchAll(PDO::FETCH_ASSOC);
+        $rows  = $query->fetchAll(PDO::FETCH_ASSOC);
+        $users = [];
+
+        foreach ($rows as $row) {
+            $users[] = $this->mapToUser($row);
+        }
+
         return $users;
     }
 
-  public function getUserByEmail(string $email) {
+    public function getUserByEmail(string $email): ?User
+    {
         $query = $this->database->connect()->prepare(
-            "
-            SELECT * FROM users WHERE email = :email
-            "
+            'SELECT * FROM users WHERE email = :email'
         );
         $query->bindParam(':email', $email);
         $query->execute();
 
-        $user = $query->fetch(PDO::FETCH_ASSOC);
-        return $user;
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->mapToUser($row);
     }
 
-    public function createUser(
-        string $email,
-        string $hashedPassword,
-        string $firstname,
-        string $lastname,
-        string $bio = ''
-    ) {
+    public function createUser(string $email, string $hashedPassword, string $username): void
+    {
         $query = $this->database->connect()->prepare(
-            "
-            INSERT INTO users (firstname, lastname, email, password, bio)
-            VALUES (?, ?, ?, ?, ?);
-            "
+            'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
         );
-        $query->execute([
-            $firstname,
-            $lastname,
-            $email, 
-            $hashedPassword,
-            $bio
-        ]);
+        $query->execute([$username, $email, $hashedPassword]);
+    }
+
+    private function mapToUser(array $row): User
+    {
+        return new User(
+            $row['username'],
+            $row['email'],
+            $row['password'],
+            $row['created_at'],
+            (bool) $row['is_active'],
+            (int) $row['id']
+        );
     }
 }

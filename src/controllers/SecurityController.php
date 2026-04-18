@@ -31,15 +31,15 @@ class SecurityController extends AppController
             return $this->render('login', ['messages' => 'User not found']);
         }
 
-        if (!password_verify($password, $user['password'])) {
+        if (!password_verify($password, $user->getPassword())) {
             return $this->render('login', ['messages' => 'Wrong password']);
         }
 
         session_regenerate_id(true);
-        $_SESSION['user_id']        = $user['id'];
-        $_SESSION['user_email']     = $user['email'];
-        $_SESSION['user_firstname'] = $user['firstname'] ?? null;
-        $_SESSION['is_logged_in']   = true;
+        $_SESSION['user_id']       = $user->getId();
+        $_SESSION['user_email']    = $user->getEmail();
+        $_SESSION['user_username'] = $user->getUsername();
+        $_SESSION['is_logged_in']  = true;
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/dashboard");
@@ -71,7 +71,7 @@ class SecurityController extends AppController
         }
 
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        $this->userRepository->createUser($email, $hashedPassword, $username, '');
+        $this->userRepository->createUser($email, $hashedPassword, $username);
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/login");

@@ -10,9 +10,9 @@
     <div class="container layout">
       <main>
         <h1>INDEX</h1>
-        <?php foreach($users as $key=>$value): ?>
-        <span><?= $value["username"]; ?></span>
-        <span><?= $value["full_name"]; ?></span>
+        <?php foreach($users as $user): ?>
+        <span><?= $user->getUsername(); ?></span>
+        <span><?= $user->getEmail(); ?></span>
         <br />
         <?php endforeach; ?>
       </main>
