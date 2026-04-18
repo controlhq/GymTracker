@@ -2,24 +2,164 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <title><?= $title; ?></title>
+    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <title>Dashboard — GYM TRACKER</title>
   </head>
-  <body>
-    <?php include __DIR__ . '/partials/nav.html'; ?>
+  <body class="dashboard-body">
 
-    <div class="container layout">
-      <main>
-        <h1>INDEX</h1>
-        <?php foreach($users as $user): ?>
-        <span><?= $user->getUsername(); ?></span>
-        <span><?= $user->getEmail(); ?></span>
-        <br />
-        <?php endforeach; ?>
+    <!-- Navbar -->
+    <nav class="dash-nav">
+      <span class="dash-nav-logo">GYM TRACKER</span>
+
+      <ul class="dash-nav-links">
+        <li><a href="/" class="active">DASHBOARD</a></li>
+        <li><a href="/workouts">WORKOUTS</a></li>
+        <li><a href="/exercises">EXERCISES</a></li>
+        <li><a href="/analytics">ANALYTICS</a></li>
+      </ul>
+
+      <div class="dash-nav-right">
+        <i class="fa-solid fa-gear nav-icon"></i>
+        <div class="nav-avatar"><i class="fa-solid fa-user"></i></div>
+      </div>
+    </nav>
+
+    <!-- Page layout -->
+    <div class="dash-layout">
+
+      <!-- Left: main content -->
+      <main class="dash-main">
+
+        <p class="dash-label">LIVE TRACKING</p>
+        <h1 class="dash-session-title">Ongoing Session</h1>
+        <p class="dash-session-subtitle">Hypertrophy Block: Pull Day A &bull; 42 mins elapsed</p>
+
+        <!-- Exercise card -->
+        <div class="exercise-card">
+          <div class="exercise-card-header">
+            <h2 class="exercise-card-title">INCLINE BARBELL BENCH PRESS</h2>
+            <button class="btn-finish-exercise">FINISH EXERCISE</button>
+          </div>
+
+          <p class="exercise-card-note">
+            <i class="fa-solid fa-circle-info"></i>
+            Focus on explosive concentric, 3s eccentric
+          </p>
+
+          <table class="sets-table">
+            <thead>
+              <tr>
+                <th>SET</th>
+                <th>PREVIOUS</th>
+                <th>WEIGHT (KG)</th>
+                <th>REPS</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="set-row-completed">
+                <td>1</td>
+                <td>85kg x 8</td>
+                <td>85</td>
+                <td>8</td>
+                <td><i class="fa-solid fa-circle-check set-status-done"></i></td>
+              </tr>
+              <tr class="set-row-active">
+                <td>2</td>
+                <td>85kg x 8</td>
+                <td>85</td>
+                <td>8</td>
+                <td><i class="fa-regular fa-circle-check set-status-done"></i></td>
+              </tr>
+              <tr class="set-row-pending">
+                <td>3</td>
+                <td>85kg x 8</td>
+                <td>&mdash;</td>
+                <td>&mdash;</td>
+                <td><i class="fa-regular fa-circle set-status-pending"></i></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button class="btn-add-set">
+            <i class="fa-solid fa-plus"></i> ADD SET
+          </button>
+        </div>
+
+        <!-- Form guide placeholder -->
+        <div class="form-guide">
+          <span class="form-guide-label">FORM GUIDE &bull; ANIMATION</span>
+        </div>
+
       </main>
-      <aside>
-        <p>TODO later</p>
+
+      <!-- Right: sidebar -->
+      <aside class="dash-sidebar">
+
+        <!-- Session progress -->
+        <div class="sidebar-card">
+          <div class="progress-header">
+            <span class="progress-label">SESSION PROGRESS</span>
+            <span class="progress-value">65%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Rest timer -->
+        <div class="sidebar-card">
+          <p class="timer-title">REST TIMER</p>
+
+          <div class="timer-ring-wrapper">
+            <div class="timer-ring">
+              <span class="timer-time">01:14</span>
+              <span class="timer-remaining-label">REMAINING</span>
+            </div>
+          </div>
+
+          <div class="timer-controls">
+            <button class="btn-timer-adj"><i class="fa-solid fa-minus"></i></button>
+            <button class="btn-timer-play"><i class="fa-solid fa-pause"></i></button>
+            <button class="btn-timer-adj"><i class="fa-solid fa-plus"></i></button>
+          </div>
+
+          <div class="timer-presets">
+            <button class="btn-preset">30S</button>
+            <button class="btn-preset active">60S</button>
+            <button class="btn-preset">90S</button>
+          </div>
+        </div>
+
+        <!-- Up next -->
+        <div class="sidebar-card">
+          <div class="up-next-image">
+            <div class="up-next-image-bg">
+              <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <span class="up-next-badge">UP NEXT</span>
+          </div>
+
+          <div class="up-next-header">
+            <div>
+              <h3 class="up-next-name">WEIGHTED DIPS</h3>
+              <p class="up-next-meta">3 Sets &bull; 10-12 Reps &bull; RPE 9</p>
+              <div class="up-next-tags">
+                <span class="up-next-tag">2.5k</span>
+                <span class="up-next-tag">5k</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right up-next-arrow"></i>
+          </div>
+        </div>
+
+        <!-- End session -->
+        <button class="btn-end-session">
+          <i class="fa-solid fa-circle-xmark"></i> END SESSION EARLY
+        </button>
+
       </aside>
-      <footer>2026</footer>
     </div>
+
   </body>
 </html>
