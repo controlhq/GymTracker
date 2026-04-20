@@ -1,11 +1,11 @@
 <?php
 
-// singleton
 class Database {
-    private $username;
-    private $password;
-    private $host;
-    private $database;
+    private string $username;
+    private string $password;
+    private string $host;
+    private string $database;
+    private ?PDO $pdo = null;
 
     public function __construct()
     {
@@ -15,25 +15,45 @@ class Database {
         $this->database = getenv('DB_DATABASE');
     }
 
-    public function connect()
+    public function connect(): PDO
     {
+        if ($this->pdo !== null) {
+            return $this->pdo;
+        }
+
         try {
-            $conn = new PDO(
-                "pgsql:host=$this->host;port=5432;dbname=$this->database",
+            $this->pdo = new PDO(
+                "pgsql:host={$this->host};port=5432;dbname={$this->database}",
                 $this->username,
                 $this->password,
                 ["sslmode" => "prefer"]
             );
-
-            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            return $conn;
-        }
-        catch(PDOException $e) {
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $this->pdo;
+        } catch (PDOException $e) {
             die("Connection failed: " . $e->getMessage());
         }
     }
 
-    public function disconnect() {
-        // $this->conn = null;
+    public function beginTransaction(): void
+    {
+        $this->connect()->beginTransaction();
+    }
+
+    public function commit(): void
+    {
+        $this->connect()->commit();
+    }
+
+    public function rollback(): void
+    {
+        $this->connect()->rollBack();
+    }
+
+    public function setUserContext(string $uuid): void
+    {
+        $pdo = $this->connect();
+        $safe = $pdo->quote($uuid);
+        $pdo->exec("SET LOCAL app.current_user_id = {$safe}");
     }
 }
