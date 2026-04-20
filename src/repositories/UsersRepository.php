@@ -5,22 +5,7 @@ require_once __DIR__ . '/../entity/User.php';
 
 class UsersRepository extends Repository
 {
-    public function getUsers(): array
-    {
-        $query = $this->database->connect()->prepare('SELECT * FROM users');
-        $query->execute();
-
-        $rows  = $query->fetchAll(PDO::FETCH_ASSOC);
-        $users = [];
-
-        foreach ($rows as $row) {
-            $users[] = $this->mapToUser($row);
-        }
-
-        return $users;
-    }
-
-    public function getUserByEmail(string $email): ?User
+    public function findByEmail(string $email): ?User
     {
         $query = $this->database->connect()->prepare(
             'SELECT * FROM users WHERE email = :email'
@@ -30,30 +15,30 @@ class UsersRepository extends Repository
 
         $row = $query->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
-            return null;
-        }
-
-        return $this->mapToUser($row);
+        return $row ? $this->mapToUser($row) : null;
     }
 
-    public function createUser(string $email, string $hashedPassword, string $username): void
+    public function createUser(string $email, string $hashedPassword, string $displayName): string
     {
         $query = $this->database->connect()->prepare(
-            'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
+            'INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?) RETURNING id'
         );
-        $query->execute([$username, $email, $hashedPassword]);
+        $query->execute([$email, $hashedPassword, $displayName]);
+
+        return $query->fetchColumn();
     }
 
     private function mapToUser(array $row): User
     {
         return new User(
-            $row['username'],
+            $row['id'],
             $row['email'],
-            $row['password'],
-            $row['created_at'],
+            $row['display_name'],
+            $row['password_hash'],
+            $row['role'],
+            $row['unit_system'],
             (bool) $row['is_active'],
-            (int) $row['id']
+            $row['created_at']
         );
     }
 }
