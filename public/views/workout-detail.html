@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <?php include __DIR__ . '/partials/head.html'; ?>
+    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <title><?= htmlspecialchars($plan['name']) ?> — GYM TRACKER</title>
+  </head>
+  <body class="dashboard-body">
+
+    <nav class="dash-nav">
+      <span class="dash-nav-logo">GYM TRACKER</span>
+      <ul class="dash-nav-links">
+        <li><a href="/dashboard">DASHBOARD</a></li>
+        <li><a href="/workouts" class="active">WORKOUTS</a></li>
+        <li><a href="/exercises">EXERCISES</a></li>
+        <li><a href="/analytics">ANALYTICS</a></li>
+      </ul>
+      <div class="dash-nav-right">
+        <span><?= htmlspecialchars($displayName) ?></span>
+        <a href="/logout">Logout</a>
+      </div>
+    </nav>
+
+    <main class="dash-main">
+      <div class="section-header">
+        <h1><?= htmlspecialchars($plan['name']) ?></h1>
+        <a href="/workouts">← Back</a>
+      </div>
+
+      <p class="plan-meta">
+        <?= htmlspecialchars($plan['status']) ?>
+        &nbsp;·&nbsp;
+        <?= htmlspecialchars($plan['intensity']) ?>
+        <?php if ($plan['duration_min']): ?>
+          &nbsp;·&nbsp; <?= (int)$plan['duration_min'] ?> min
+        <?php endif; ?>
+      </p>
+
+      <?php if (!empty($plan['description'])): ?>
+        <p><?= htmlspecialchars($plan['description']) ?></p>
+      <?php endif; ?>
+
+      <h2>Exercises</h2>
+
+      <?php if (empty($planExercises)): ?>
+        <p>No exercises in this plan yet.</p>
+      <?php else: ?>
+        <table class="exercises-table">
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Muscle group</th>
+              <th>Sets</th>
+              <th>Reps</th>
+              <th>Rest (s)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($planExercises as $pe): ?>
+              <tr>
+                <td><?= htmlspecialchars($pe['exercise_name']) ?></td>
+                <td><?= htmlspecialchars($pe['muscle_group']) ?></td>
+                <td><?= $pe['sets'] ?? '—' ?></td>
+                <td><?= $pe['reps'] ?? '—' ?></td>
+                <td><?= $pe['rest_sec'] ?? '—' ?></td>
+                <td>
+                  <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/remove-exercise">
+                    <input type="hidden" name="plan_exercise_id" value="<?= htmlspecialchars($pe['id']) ?>" />
+                    <button type="submit">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+
+      <h2>Add Exercise</h2>
+      <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/add-exercise">
+        <div class="form-group">
+          <label for="exercise_id">Exercise</label>
+          <select id="exercise_id" name="exercise_id" required>
+            <option value="">— select —</option>
+            <?php foreach ($allExercises as $ex): ?>
+              <option value="<?= htmlspecialchars($ex['id']) ?>">
+                <?= htmlspecialchars($ex['name']) ?> (<?= htmlspecialchars($ex['muscle_group']) ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sets">Sets</label>
+          <input type="number" id="sets" name="sets" min="1" />
+        </div>
+        <div class="form-group">
+          <label for="reps">Reps</label>
+          <input type="number" id="reps" name="reps" min="1" />
+        </div>
+        <div class="form-group">
+          <label for="rest_sec">Rest (seconds)</label>
+          <input type="number" id="rest_sec" name="rest_sec" min="0" />
+        </div>
+        <button type="submit">Add Exercise</button>
+      </form>
+    </main>
+
+  </body>
+</html>
