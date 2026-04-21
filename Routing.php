@@ -44,6 +44,14 @@ class Routing {
             "controller" => "WorkoutsController",
             "action" => "index"
         ],
+        "^workouts/create$" => [
+            "controller" => "WorkoutsController",
+            "action" => "create"
+        ],
+        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$" => [
+            "controller" => "WorkoutsController",
+            "action" => "detail"
+        ],
         "^register$" => [
             "controller" => "SecurityController",
             "action" => "register"

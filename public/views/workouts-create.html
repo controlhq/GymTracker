@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <?php include __DIR__ . '/partials/head.html'; ?>
+    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <title>New Plan — GYM TRACKER</title>
+  </head>
+  <body class="dashboard-body">
+
+    <nav class="dash-nav">
+      <span class="dash-nav-logo">GYM TRACKER</span>
+      <ul class="dash-nav-links">
+        <li><a href="/dashboard">DASHBOARD</a></li>
+        <li><a href="/workouts" class="active">WORKOUTS</a></li>
+        <li><a href="/exercises">EXERCISES</a></li>
+        <li><a href="/analytics">ANALYTICS</a></li>
+      </ul>
+      <div class="dash-nav-right">
+        <span><?= htmlspecialchars($displayName) ?></span>
+        <a href="/logout">Logout</a>
+      </div>
+    </nav>
+
+    <main class="dash-main">
+      <h1>New Workout Plan</h1>
+
+      <?php if (!empty($messages)): ?>
+        <p class="form-error"><?= htmlspecialchars($messages) ?></p>
+      <?php endif; ?>
+
+      <form method="POST" action="/workouts/create">
+        <div class="form-group">
+          <label for="name">Name *</label>
+          <input type="text" id="name" name="name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="intensity">Intensity</label>
+          <select id="intensity" name="intensity">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="duration_min">Duration (minutes)</label>
+          <input type="number" id="duration_min" name="duration_min" min="1" />
+        </div>
+
+        <div class="form-actions">
+          <a href="/workouts">Cancel</a>
+          <button type="submit">Create Plan</button>
+        </div>
+      </form>
+    </main>
+
+  </body>
+</html>

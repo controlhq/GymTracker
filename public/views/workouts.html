@@ -9,19 +9,49 @@
 
     <nav class="dash-nav">
       <span class="dash-nav-logo">GYM TRACKER</span>
-
       <ul class="dash-nav-links">
         <li><a href="/dashboard">DASHBOARD</a></li>
         <li><a href="/workouts" class="active">WORKOUTS</a></li>
         <li><a href="/exercises">EXERCISES</a></li>
         <li><a href="/analytics">ANALYTICS</a></li>
       </ul>
-
       <div class="dash-nav-right">
-        <i class="fa-solid fa-gear nav-icon"></i>
-        <div class="nav-avatar"><i class="fa-solid fa-user"></i></div>
+        <span><?= htmlspecialchars($displayName) ?></span>
+        <a href="/logout">Logout</a>
       </div>
     </nav>
+
+    <main class="dash-main">
+      <div class="section-header">
+        <h1>Workout Plans</h1>
+        <a href="/workouts/create" class="btn-primary">+ New Plan</a>
+      </div>
+
+      <?php if (empty($plans)): ?>
+        <p>No workout plans yet. <a href="/workouts/create">Create your first plan</a>.</p>
+      <?php else: ?>
+        <div class="plans-list">
+          <?php foreach ($plans as $plan): ?>
+            <div class="plan-card">
+              <a href="/workouts/<?= htmlspecialchars($plan['id']) ?>">
+                <h3><?= htmlspecialchars($plan['name']) ?></h3>
+              </a>
+              <p class="plan-meta">
+                <?= htmlspecialchars($plan['status']) ?>
+                &nbsp;·&nbsp;
+                <?= htmlspecialchars($plan['intensity']) ?>
+                <?php if ($plan['duration_min']): ?>
+                  &nbsp;·&nbsp; <?= (int)$plan['duration_min'] ?> min
+                <?php endif; ?>
+              </p>
+              <?php if (!empty($plan['description'])): ?>
+                <p class="plan-desc"><?= htmlspecialchars($plan['description']) ?></p>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </main>
 
   </body>
 </html>
