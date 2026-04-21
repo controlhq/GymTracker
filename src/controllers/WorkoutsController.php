@@ -18,7 +18,7 @@ class WorkoutsController extends AppController
         $this->exercisesRepository     = new ExercisesRepository();
     }
 
-    public function index(): void
+    public function index(?string $p1 = null, ?string $p2 = null): void
     {
         $this->requireLogin();
 
@@ -30,7 +30,7 @@ class WorkoutsController extends AppController
         ]);
     }
 
-    public function create(): void
+    public function create(?string $p1 = null, ?string $p2 = null): void
     {
         $this->requireLogin();
 
@@ -68,7 +68,39 @@ class WorkoutsController extends AppController
         header("Location: {$url}/workouts");
     }
 
-    public function detail(?string $planId): void
+    public function handleExercise(?string $planId, ?string $action): void
+    {
+        $this->requireLogin();
+
+        if (!$planId) {
+            include 'public/views/404.html';
+            return;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $url    = "http://$_SERVER[HTTP_HOST]";
+
+        if ($action === 'add-exercise') {
+            $exerciseId = $_POST['exercise_id'] ?? '';
+            $sets       = isset($_POST['sets'])     && $_POST['sets']     !== '' ? (int)$_POST['sets']     : null;
+            $reps       = isset($_POST['reps'])     && $_POST['reps']     !== '' ? (int)$_POST['reps']     : null;
+            $restSec    = isset($_POST['rest_sec']) && $_POST['rest_sec'] !== '' ? (int)$_POST['rest_sec'] : null;
+
+            if (!empty($exerciseId)) {
+                $this->planExercisesRepository->addExerciseToPlan($userId, $planId, $exerciseId, $sets, $reps, $restSec);
+            }
+        } elseif ($action === 'remove-exercise') {
+            $planExerciseId = $_POST['plan_exercise_id'] ?? '';
+
+            if (!empty($planExerciseId)) {
+                $this->planExercisesRepository->removeExerciseFromPlan($userId, $planExerciseId);
+            }
+        }
+
+        header("Location: {$url}/workouts/{$planId}");
+    }
+
+    public function detail(?string $planId, ?string $p2 = null): void
     {
         $this->requireLogin();
 

@@ -52,6 +52,10 @@ class Routing {
             "controller" => "WorkoutsController",
             "action" => "detail"
         ],
+        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(add-exercise|remove-exercise)$" => [
+            "controller" => "WorkoutsController",
+            "action" => "handleExercise"
+        ],
         "^register$" => [
             "controller" => "SecurityController",
             "action" => "register"
@@ -86,10 +90,11 @@ class Routing {
 
                 // Wyciągamy ID: $matches[0] to cały dopasowany ciąg, 
                 // $matches[1] to pierwsza grupa w nawiasach (nasze ID)
-                $id = $matches[1] ?? null;
+                $id  = $matches[1] ?? null;
+                $id2 = $matches[2] ?? null;
 
                 // Wywołujemy akcję z przekazanym ID
-                $controllerObj->$action($id);
+                $controllerObj->$action($id, $id2);
                 return; // Kończymy działanie po znalezieniu dopasowania
             }
         }
