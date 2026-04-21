@@ -9,19 +9,73 @@
 
     <nav class="dash-nav">
       <span class="dash-nav-logo">GYM TRACKER</span>
-
       <ul class="dash-nav-links">
         <li><a href="/dashboard">DASHBOARD</a></li>
         <li><a href="/workouts">WORKOUTS</a></li>
         <li><a href="/exercises">EXERCISES</a></li>
         <li><a href="/analytics" class="active">ANALYTICS</a></li>
       </ul>
-
       <div class="dash-nav-right">
-        <i class="fa-solid fa-gear nav-icon"></i>
-        <div class="nav-avatar"><i class="fa-solid fa-user"></i></div>
+        <span><?= htmlspecialchars($displayName) ?></span>
+        <a href="/logout">Logout</a>
       </div>
     </nav>
+
+    <main class="dash-main">
+      <h1>Analytics</h1>
+
+      <?php if ($activeSession): ?>
+        <div class="active-session-banner">
+          <span>Session in progress — started <?= htmlspecialchars($activeSession['started_at']) ?></span>
+          <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>">Continue</a>
+          <form method="POST" action="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>/end" style="display:inline">
+            <button type="submit">End Session</button>
+          </form>
+        </div>
+      <?php else: ?>
+        <form method="POST" action="/analytics/session/start">
+          <button type="submit">Start New Session</button>
+        </form>
+      <?php endif; ?>
+
+      <h2>Session History</h2>
+
+      <?php if (empty($sessions)): ?>
+        <p>No sessions recorded yet.</p>
+      <?php else: ?>
+        <table class="sessions-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Plan</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($sessions as $session): ?>
+              <tr>
+                <td><?= htmlspecialchars($session['started_at']) ?></td>
+                <td><?= htmlspecialchars($session['plan_name'] ?? '—') ?></td>
+                <td>
+                  <?php if ($session['ended_at']): ?>
+                    <?php
+                      $start = new DateTime($session['started_at']);
+                      $end   = new DateTime($session['ended_at']);
+                      $diff  = $start->diff($end);
+                      echo $diff->format('%H:%I:%S');
+                    ?>
+                  <?php else: ?>
+                    —
+                  <?php endif; ?>
+                </td>
+                <td><?= $session['ended_at'] ? 'Completed' : 'Active' ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+    </main>
 
   </body>
 </html>
