@@ -36,6 +36,18 @@ class Routing {
             "controller" => "AnalyticsController",
             "action" => "index"
         ],
+        "^analytics/session/start$" => [
+            "controller" => "AnalyticsController",
+            "action" => "startSession"
+        ],
+        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$" => [
+            "controller" => "AnalyticsController",
+            "action" => "activeSession"
+        ],
+        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(end|add-exercise|log-set)$" => [
+            "controller" => "AnalyticsController",
+            "action" => "handleSession"
+        ],
         "^exercises$" => [
             "controller" => "ExercisesController",
             "action" => "index"
