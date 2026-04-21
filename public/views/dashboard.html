@@ -1,14 +1,36 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
+    <?php include __DIR__ . '/partials/head.html'; ?>
+    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <title>Dashboard — GYM TRACKER</title>
   </head>
-  <body>
+  <body class="dashboard-body">
+
     <?php $currentPage = 'dashboard'; include __DIR__ . '/partials/nav.html'; ?>
-    <main>
+
+    <main class="dash-main">
       <h1>Welcome, <?= htmlspecialchars($displayName) ?></h1>
+
+      <div class="dashboard-widgets">
+        <div class="widget">
+          <h2>Workout Plans</h2>
+          <p class="widget-value"><?= (int)$planCount ?></p>
+          <a href="/workouts">View plans</a>
+        </div>
+
+        <div class="widget">
+          <h2>Active Session</h2>
+          <?php if ($activeSession): ?>
+            <p class="widget-value">In progress</p>
+            <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>">Continue Session</a>
+          <?php else: ?>
+            <p class="widget-value">—</p>
+            <a href="/analytics">Start session</a>
+          <?php endif; ?>
+        </div>
+      </div>
     </main>
+
   </body>
 </html>
