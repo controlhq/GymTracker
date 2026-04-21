@@ -1,7 +1,7 @@
 <?php
 
 require_once 'Repository.php';
-require_once __DIR__ . '/../entity/User.php';
+require_once __DIR__ . '/../Entity/User/User.php';
 
 class UsersRepository extends Repository
 {
