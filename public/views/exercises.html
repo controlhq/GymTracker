@@ -9,19 +9,38 @@
 
     <nav class="dash-nav">
       <span class="dash-nav-logo">GYM TRACKER</span>
-
       <ul class="dash-nav-links">
         <li><a href="/dashboard">DASHBOARD</a></li>
         <li><a href="/workouts">WORKOUTS</a></li>
         <li><a href="/exercises" class="active">EXERCISES</a></li>
         <li><a href="/analytics">ANALYTICS</a></li>
       </ul>
-
       <div class="dash-nav-right">
-        <i class="fa-solid fa-gear nav-icon"></i>
-        <div class="nav-avatar"><i class="fa-solid fa-user"></i></div>
+        <span><?= htmlspecialchars($displayName) ?></span>
+        <a href="/logout">Logout</a>
       </div>
     </nav>
+
+    <main class="dash-main">
+      <h1>Exercises</h1>
+
+      <div class="exercise-grid">
+        <?php foreach ($exercises as $exercise): ?>
+          <div class="exercise-card">
+            <h3><?= htmlspecialchars($exercise['name']) ?></h3>
+            <p class="exercise-meta"><?= htmlspecialchars($exercise['muscle_group']) ?></p>
+            <p class="exercise-type"><?= htmlspecialchars($exercise['exercise_type']) ?></p>
+            <?php if (!empty($exercise['description'])): ?>
+              <p class="exercise-desc"><?= htmlspecialchars($exercise['description']) ?></p>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+
+        <?php if (empty($exercises)): ?>
+          <p>No exercises found.</p>
+        <?php endif; ?>
+      </div>
+    </main>
 
   </body>
 </html>
