@@ -31,6 +31,10 @@ class SecurityController extends AppController
             return $this->render('login', ['messages' => 'User not found']);
         }
 
+        if (!$user->isActive()) {
+            return $this->render('login', ['messages' => 'Account is disabled']);
+        }
+
         if (!password_verify($password, $user->getPasswordHash())) {
             return $this->render('login', ['messages' => 'Wrong password']);
         }
@@ -58,6 +62,10 @@ class SecurityController extends AppController
 
         if (empty($email) || empty($password) || empty($displayName)) {
             return $this->render('register', ['messages' => 'Fill all fields']);
+        }
+
+        if ($password !== $password2) {
+            return $this->render('register', ['messages' => 'Passwords do not match']);
         }
 
         $user = $this->userRepository->findByEmail($email);
