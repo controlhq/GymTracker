@@ -35,9 +35,10 @@ class WorkoutsController extends AppController
         $this->requireLogin();
 
         if (!$this->isPost()) {
-            return $this->render('workouts-create', [
+            $this->render('workouts-create', [
                 'displayName' => $_SESSION['user_display_name'],
             ]);
+            return;
         }
 
         $name        = trim($_POST['name']        ?? '');
@@ -49,10 +50,11 @@ class WorkoutsController extends AppController
                        : null;
 
         if (empty($name)) {
-            return $this->render('workouts-create', [
+            $this->render('workouts-create', [
                 'displayName' => $_SESSION['user_display_name'],
                 'messages'    => 'Plan name is required',
             ]);
+            return;
         }
 
         $this->plansRepository->createPlan(
