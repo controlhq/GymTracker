@@ -25,21 +25,21 @@ class SecurityController extends AppController
             return $this->render('login', ['messages' => 'Fill all fields']);
         }
 
-        $user = $this->userRepository->getUserByEmail($email);
+        $user = $this->userRepository->findByEmail($email);
 
         if (!$user) {
             return $this->render('login', ['messages' => 'User not found']);
         }
 
-        if (!password_verify($password, $user->getPassword())) {
+        if (!password_verify($password, $user->getPasswordHash())) {
             return $this->render('login', ['messages' => 'Wrong password']);
         }
 
         session_regenerate_id(true);
-        $_SESSION['user_id']       = $user->getId();
-        $_SESSION['user_email']    = $user->getEmail();
-        $_SESSION['user_username'] = $user->getUsername();
-        $_SESSION['is_logged_in']  = true;
+        $_SESSION['user_id']           = $user->getId();
+        $_SESSION['user_email']        = $user->getEmail();
+        $_SESSION['user_display_name'] = $user->getDisplayName();
+        $_SESSION['is_logged_in']      = true;
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/dashboard");
@@ -51,27 +51,22 @@ class SecurityController extends AppController
             return $this->render('register');
         }
 
-        $email     = trim($_POST['email']     ?? '');
-        $password  = $_POST['password']       ?? '';
-        $password2 = $_POST['password2']      ?? '';
-        $username  = $_POST['username']       ?? '';
+        $email       = trim($_POST['email']        ?? '');
+        $password    = $_POST['password']          ?? '';
+        $password2   = $_POST['password2']         ?? '';
+        $displayName = trim($_POST['display_name'] ?? '');
 
-        if (empty($email) || empty($password) || empty($username)) {
+        if (empty($email) || empty($password) || empty($displayName)) {
             return $this->render('register', ['messages' => 'Fill all fields']);
         }
 
-        // TODO: compare password === password2
-        // if ($password !== $password2) {
-        //     return $this->render('register', ['messages' => 'Passwords do not match']);
-        // }
-
-        $user = $this->userRepository->getUserByEmail($email);
+        $user = $this->userRepository->findByEmail($email);
         if ($user) {
             return $this->render('register', ['messages' => 'User exists']);
         }
 
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        $this->userRepository->createUser($email, $hashedPassword, $username);
+        $this->userRepository->createUser($email, $hashedPassword, $displayName);
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/login");
