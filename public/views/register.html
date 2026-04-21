@@ -1,24 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
+    <link rel="stylesheet" type="text/css" href="public/styles/login.css" />
   </head>
-  <body>
-    <form method="POST" action="/register">
-      <h1>REGISTER FORM</h1>
+  <body class="login-body">
+    <div class="login-bg">
 
-      <?php if(isset($messages)): ?>
-      <p class="messages">
-        <?= $messages ?>
+      <div class="login-logo">GYM TRACKER</div>
+
+      <div class="login-card">
+        <h1 class="login-heading">JOIN THE ELITE</h1>
+        <p class="login-subtitle">CREATE YOUR ACCOUNT AND START TRACKING</p>
+
+        <form method="POST" action="/register">
+
+          <?php if(isset($messages)): ?>
+          <p class="messages"><?= htmlspecialchars($messages) ?></p>
+          <?php endif; ?>
+
+          <div class="form-group">
+            <label class="form-label">DISPLAY NAME</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-user"></i>
+              <input name="display_name" type="text" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">EMAIL ADDRESS</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-envelope"></i>
+              <input name="email" type="email" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PASSWORD</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input name="password" type="password" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">REPEAT PASSWORD</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input name="password2" type="password" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login">CREATE ACCOUNT</button>
+
+          <div class="social-divider"><span>SOCIAL ACCESS</span></div>
+
+          <button type="button" class="btn-google">
+            <i class="fa-brands fa-google"></i> GOOGLE
+          </button>
+
+        </form>
+
+        <div class="login-quote">
+          <i class="fa-solid fa-bolt"></i>
+          <p>"THE PAIN YOU FEEL TODAY WILL BE THE STRENGTH YOU FEEL TOMORROW — START NOW"</p>
+        </div>
+      </div>
+
+      <p class="login-register">
+        ALREADY HAVE AN ACCOUNT? <a href="/login">SIGN IN</a>
       </p>
-      <?php endif; ?>
 
-      <input name="display_name" type="text" placeholder="Display name" />
-      <input name="email" type="email" placeholder="Email" />
-      <input name="password" type="password" placeholder="Password" />
-      <input name="password2" type="password" placeholder="Repeat password" />
-
-      <button type="submit">REGISTER</button>
-    </form>
+    </div>
   </body>
 </html>
