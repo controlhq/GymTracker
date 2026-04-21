@@ -7,19 +7,7 @@
   </head>
   <body class="dashboard-body">
 
-    <nav class="dash-nav">
-      <span class="dash-nav-logo">GYM TRACKER</span>
-      <ul class="dash-nav-links">
-        <li><a href="/dashboard">DASHBOARD</a></li>
-        <li><a href="/workouts">WORKOUTS</a></li>
-        <li><a href="/exercises">EXERCISES</a></li>
-        <li><a href="/analytics" class="active">ANALYTICS</a></li>
-      </ul>
-      <div class="dash-nav-right">
-        <span><?= htmlspecialchars($displayName) ?></span>
-        <a href="/logout">Logout</a>
-      </div>
-    </nav>
+    <?php $currentPage = 'analytics'; include __DIR__ . '/partials/nav.html'; ?>
 
     <main class="dash-main">
       <div class="section-header">
