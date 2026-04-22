@@ -31,17 +31,21 @@
           <label for="status">Status</label>
           <select id="status" name="status">
             <option value="draft">Draft</option>
+            <option value="routine">Routine</option>
             <option value="active">Active</option>
             <option value="archived">Archived</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="intensity">Intensity</label>
+          <label for="intensity">Intensity (1–5)</label>
           <select id="intensity" name="intensity">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
+            <option value="">—</option>
+            <option value="1">1 — Very easy</option>
+            <option value="2">2 — Easy</option>
+            <option value="3" selected>3 — Moderate</option>
+            <option value="4">4 — Hard</option>
+            <option value="5">5 — Maximum</option>
           </select>
         </div>
 

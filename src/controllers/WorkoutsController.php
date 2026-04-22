@@ -43,8 +43,10 @@ class WorkoutsController extends AppController
 
         $name        = trim($_POST['name']        ?? '');
         $description = trim($_POST['description'] ?? '');
-        $status      = $_POST['status']           ?? 'draft';
-        $intensity   = $_POST['intensity']        ?? 'medium';
+        $status      = $_POST['status']    ?? 'draft';
+        $intensity   = isset($_POST['intensity']) && $_POST['intensity'] !== ''
+                       ? (int) $_POST['intensity']
+                       : null;
         $durationMin = isset($_POST['duration_min']) && $_POST['duration_min'] !== ''
                        ? (int) $_POST['duration_min']
                        : null;

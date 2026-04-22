@@ -17,9 +17,9 @@ class WorkoutPlansRepository extends Repository
         });
     }
 
-    public function createPlan(string $userId, string $name, string $description, string $status, string $intensity, ?int $durationMin): string
+    public function createPlan(string $userId, string $name, string $description, string $status, ?int $intensity, ?int $durationMin): string
     {
-        return $this->withUserContext($userId, function () use ($name, $description, $status, $intensity, $durationMin, $userId) {
+        return $this->withUserContext($userId, function () use ($userId, $name, $description, $status, $intensity, $durationMin) {
             $query = $this->database->connect()->prepare(
                 'INSERT INTO workout_plans (user_id, name, description, status, intensity, duration_min)
                  VALUES (?, ?, ?, ?, ?, ?)

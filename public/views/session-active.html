@@ -56,15 +56,21 @@
         <h2>Add Exercise</h2>
         <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/add-exercise">
           <div class="form-group">
-            <select name="exercise_id" required>
-              <option value="">— select exercise —</option>
+            <select name="exercise_id" id="exercise_id_select" required onchange="syncExerciseName(this)">
+              <option value="" data-name="">— select exercise —</option>
               <?php foreach ($allExercises as $ex): ?>
-                <option value="<?= htmlspecialchars($ex['id']) ?>">
+                <option value="<?= htmlspecialchars($ex['id']) ?>" data-name="<?= htmlspecialchars($ex['name']) ?>">
                   <?= htmlspecialchars($ex['name']) ?> (<?= htmlspecialchars($ex['muscle_group']) ?>)
                 </option>
               <?php endforeach; ?>
             </select>
+            <input type="hidden" name="exercise_name" id="exercise_name_input" value="" />
             <button type="submit">Add</button>
+            <script>
+              function syncExerciseName(sel) {
+                document.getElementById('exercise_name_input').value = sel.options[sel.selectedIndex].dataset.name;
+              }
+            </script>
           </div>
         </form>
       </div>

@@ -38,7 +38,8 @@ class AnalyticsController extends AppController
         $this->requireLogin();
 
         $userId    = $_SESSION['user_id'];
-        $sessionId = $this->sessionsRepository->startSession($userId, null);
+        $name      = date('Y-m-d H:i') . ' session';
+        $sessionId = $this->sessionsRepository->startSession($userId, $name, null);
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/analytics/session/{$sessionId}");
@@ -90,9 +91,10 @@ class AnalyticsController extends AppController
         }
 
         if ($action === 'add-exercise') {
-            $exerciseId = $_POST['exercise_id'] ?? '';
-            if (!empty($exerciseId)) {
-                $this->sessionExercisesRepository->addExerciseToSession($userId, $sessionId, $exerciseId);
+            $exerciseId   = $_POST['exercise_id']   ?? '';
+            $exerciseName = $_POST['exercise_name'] ?? '';
+            if (!empty($exerciseId) && !empty($exerciseName)) {
+                $this->sessionExercisesRepository->addExerciseToSession($userId, $sessionId, $exerciseId, $exerciseName);
             }
             header("Location: {$url}/analytics/session/{$sessionId}");
             return;
