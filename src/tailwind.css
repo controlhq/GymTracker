@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@source "../public/views/**/*.html";
+@source "../src/**/*.php";
+@source "../public/scripts/**/*.js";
+
+@theme {
+  --color-brand-green: #39ff14;
+  --color-surface-base: #0a0a0a;
+  --color-surface-raised: #141414;
+  --color-surface-card: #1a1a1a;
+  --color-surface-border: #2a2a2a;
+  --font-family-sans: Inter, system-ui, ui-sans-serif, sans-serif;
+  --radius-card: 16px;
+}
