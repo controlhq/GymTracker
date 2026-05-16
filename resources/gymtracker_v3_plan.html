@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymTracker — Plan migracji schematu v3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1a1a2e; background: #fff; padding: 32px; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 26px; color: #0f3460; border-bottom: 3px solid #0f3460; padding-bottom: 10px; margin-bottom: 6px; }
+  .subtitle { color: #555; font-size: 13px; margin-bottom: 28px; }
+  h2 { font-size: 18px; color: #16213e; margin: 28px 0 10px; border-left: 4px solid #e94560; padding-left: 10px; }
+  h3 { font-size: 14px; color: #0f3460; margin: 18px 0 6px; }
+  p { margin-bottom: 8px; line-height: 1.6; }
+  ul, ol { margin: 6px 0 10px 20px; line-height: 1.7; }
+  li { margin-bottom: 3px; }
+  code { background: #f0f0f0; border-radius: 3px; padding: 1px 5px; font-family: 'Consolas', monospace; font-size: 12.5px; color: #c0392b; }
+  pre { background: #1a1a2e; color: #e0e0e0; padding: 14px 16px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 12px; overflow-x: auto; margin: 10px 0 14px; line-height: 1.5; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .commit { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 18px; margin-bottom: 16px; page-break-inside: avoid; }
+  .commit-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .commit-num { background: #0f3460; color: #fff; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; }
+  .commit-title { font-weight: bold; font-size: 14px; color: #0f3460; font-family: 'Consolas', monospace; }
+  .files { font-size: 12px; color: #666; margin-bottom: 8px; }
+  .files span { background: #f0f4ff; border: 1px solid #c5cff0; border-radius: 3px; padding: 1px 6px; margin-right: 4px; display: inline-block; margin-bottom: 3px; }
+  .warning { background: #fff8e1; border-left: 4px solid #f39c12; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 10px 0; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #0f3460; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f8f8f8; }
+  .path-graph { background: #f8f9ff; border: 1px solid #d0d8f0; border-radius: 6px; padding: 14px 16px; margin: 10px 0; }
+  .badge { display: inline-block; font-size: 11px; font-weight: bold; border-radius: 3px; padding: 1px 7px; margin-right: 4px; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .badge-red { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  @media print {
+    body { padding: 16px; }
+    .commit { page-break-inside: avoid; }
+    pre { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+
+<h1>GymTracker — Plan migracji schematu v3</h1>
+<p class="subtitle">~16 commitów &nbsp;|&nbsp; PHP MVC + PostgreSQL &nbsp;|&nbsp; Data planu: 20 kwietnia 2026</p>
+
+<h2>Kontekst</h2>
+<p>Aplikacja ma trywialny schemat (1 tabela <code>users</code>). Schemat v3 z pliku <code>resources/gym_tracker_schema_v3.sql</code> wprowadza pełną strukturę dla trackera siłowni: ćwiczenia, plany treningowe i sesje. Plan implementuje go commit po commicie, pozostawiając aplikację w działającym stanie po każdym kroku.</p>
+
+<h3>Uzgodnione modyfikacje względem oryginalnego v3</h3>
+<ul>
+  <li><span class="badge badge-red">USUŃ</span> Tabelę <code>refresh_tokens</code> — app używa PHP sessions, nie JWT</li>
+  <li><span class="badge badge-green">DODAJ</span> <code>is_active BOOLEAN NOT NULL DEFAULT TRUE</code> do tabeli <code>users</code></li>
+  <li><span class="badge badge-blue">ZOSTAW</span> Tabelę <code>auth_providers</code> — OAuth planowane na przyszłość</li>
+  <li><span class="badge badge-green">WŁĄCZ</span> RLS — PHP ustawia <code>SET LOCAL app.current_user_id</code> przed zapytaniami</li>
+</ul>
+<div class="warning">⚠️ Polityki RLS muszą używać <code>current_setting('app.current_user_id', true)</code> (2-arg forma) — zwraca NULL zamiast rzucać wyjątek gdy setting nie jest ustawiony.</div>
+
+<h2>Ścieżka krytyczna</h2>
+<div class="path-graph">
+<pre><code>Commit 1  (schema: init.sql)
+  → Commit 2  (Database.php: persist connection + setUserContext)
+    → Commit 3  (User entity + UsersRepository: UUID, display_name, role)
+      → Commit 4  (SecurityController: UUID sessions, display_name)
+        → Commit 5  (DashboardController: dane z sesji, widok)
+          ├── Commit 6  (Exercises: repo + controller + widok)
+          ├── Commit 7  (WorkoutPlansRepository + withUserContext w Repository)
+          │     → Commit 8  (WorkoutsController: lista + create)
+          │       → Commit 9  (Plan detail + PlanExercisesRepository)
+          │         → Commit 10 (POST add/remove exercise + fix routera)
+          └── Commit 11 (SessionsRepository + Analytics widok)
+                → Commit 12 (Session set logging + session-active widok)
+Commit 13 (nav partial — po tym jak wszystkie widoki istnieją)
+Commit 14 (register form + is_active guard w login)
+Commit 15 (dashboard widgets: active session + plan count)
+Commit 16 (aktualizacja CLAUDE.md)</code></pre>
+</div>
+
+<h2>Commity — szczegóły</h2>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">1</div>
+    <div class="commit-title">db: replace init.sql with v3 schema</div>
+  </div>
+  <div class="files"><span>docker/db/init/init.sql</span></div>
+  <p>Zastąpić całą zawartość pełnym schematem v3 z modyfikacjami. Rozszerzenia: <code>pgcrypto</code>, <code>citext</code>, <code>pg_trgm</code>. Tabele w kolejności zależności, triggery <code>touch_updated_at()</code>, RLS na 6 tabelach, seed 6 grup mięśniowych. Pominąć <code>refresh_tokens</code>. Dodać <code>is_active</code> do <code>users</code>.</p>
+  <div class="warning">⚠️ Wymaga <code>docker-compose down -v &amp;&amp; docker-compose up -d</code> po commicie. Aplikacja tymczasowo nie działa (kolumny zmienione) — naprawiona w Commit 4.</div>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">2</div>
+    <div class="commit-title">core: persistent Database connection + RLS support</div>
+  </div>
+  <div class="files"><span>Database.php</span></div>
+  <p>Przechowywać PDO jako prywatną właściwość instancji (singleton per request). <code>connect()</code> zwraca <code>$this->pdo</code>, tworzy połączenie tylko raz. Dodać: <code>beginTransaction()</code>, <code>commit()</code>, <code>rollback()</code>. Dodać: <code>setUserContext(string $uuid)</code> — <code>SET LOCAL app.current_user_id</code> przez <code>$pdo->quote()</code>.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">3</div>
+    <div class="commit-title">auth: User entity + UsersRepository for v3</div>
+  </div>
+  <div class="files"><span>src/entity/User.php</span><span>src/repositories/UsersRepository.php</span></div>
+  <p><strong>User.php:</strong> <code>$id</code>: <code>int</code> → <code>string</code> (UUID), <code>$username</code> → <code>$displayName</code>, <code>$password</code> → <code>$passwordHash</code>. Dodać <code>$role</code>, <code>$unitSystem</code>. Gettery: <code>getDisplayName()</code>, <code>getPasswordHash()</code>, <code>getRole()</code>, <code>getUnitSystem()</code>, <code>isActive()</code>. Usunąć <code>getUsername()</code>, <code>getPassword()</code>.</p>
+  <p><strong>UsersRepository.php:</strong> Zaktualizować SELECT/INSERT na nowe nazwy kolumn (<code>password_hash</code>, <code>display_name</code>). <code>createUser(email, hashedPassword, displayName)</code>. Używać <code>RETURNING id</code> dla UUID.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">4</div>
+    <div class="commit-title">auth: SecurityController for UUID + display_name</div>
+  </div>
+  <div class="files"><span>src/controllers/SecurityController.php</span></div>
+  <p><code>login()</code>: <code>getPassword()</code> → <code>getPasswordHash()</code>, sesja <code>user_username</code> → <code>user_display_name</code>. <code>register()</code>: czytać <code>$_POST['display_name']</code>. <code>$_SESSION['user_id']</code> trzyma UUID string.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">5</div>
+    <div class="commit-title">dashboard: clean up DashboardController + widok</div>
+  </div>
+  <div class="files"><span>src/controllers/DashboardController.php</span><span>public/views/dashboard.html</span></div>
+  <p>Usunąć <code>UsersRepository</code> z dashboardu (był debug dump). <code>render('dashboard', ['displayName' => $_SESSION['user_display_name']])</code>. Widok: pokazać display_name w navie, placeholder content. ✅ Aplikacja w pełni funkcjonalna dla auth.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">6</div>
+    <div class="commit-title">exercises: ExercisesRepository + controller + widok</div>
+  </div>
+  <div class="files"><span>src/repositories/ExercisesRepository.php</span> <em>(nowy)</em><span>src/controllers/ExercisesController.php</span><span>public/views/exercises.html</span></div>
+  <p><code>ExercisesRepository::getAll()</code>: JOIN <code>exercises</code> + <code>muscle_groups</code>, tylko <code>is_active = TRUE</code>. <strong>Brak RLS</strong> — tabela globalna, nie wymaga kontekstu użytkownika. Widok: grid kart ćwiczeń (nazwa, grupa mięśniowa, typ).</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">7</div>
+    <div class="commit-title">workouts: Repository.withUserContext + WorkoutPlansRepository</div>
+  </div>
+  <div class="files"><span>src/repositories/Repository.php</span><span>src/repositories/WorkoutPlansRepository.php</span> <em>(nowy)</em></div>
+  <p>Dodać helper <code>withUserContext(string $userId, callable $fn)</code> w base Repository — otwiera transakcję, ustawia kontekst RLS, wykonuje callback, commituje lub rollbackuje.</p>
+<pre><code>protected function withUserContext(string $userId, callable $fn): mixed {
+    $this->database->beginTransaction();
+    try {
+        $this->database->setUserContext($userId);
+        $result = $fn();
+        $this->database->commit();
+        return $result;
+    } catch (\Throwable $e) {
+        $this->database->rollback();
+        throw $e;
+    }
+}</code></pre>
+  <p><code>WorkoutPlansRepository</code>: <code>getPlansForUser</code>, <code>createPlan</code> (RETURNING id), <code>getPlanById</code>, <code>deletePlan</code>, <code>updatePlanStatus</code>.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">8</div>
+    <div class="commit-title">workouts: lista planów + formularz create</div>
+  </div>
+  <div class="files"><span>Routing.php</span><span>src/controllers/WorkoutsController.php</span><span>public/views/workouts.html</span><span>public/views/workouts-create.html</span> <em>(nowy)</em></div>
+  <p>Nowe trasy: <code>^workouts/create$</code> i <code>^workouts/&lt;UUID-regex&gt;$</code>. Controller: <code>index()</code> listuje plany, <code>create()</code> obsługuje GET (formularz) i POST (walidacja + zapis + redirect). Formularz: name, description, status, intensity, duration_min.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">9</div>
+    <div class="commit-title">workouts: plan detail + PlanExercisesRepository</div>
+  </div>
+  <div class="files"><span>src/repositories/PlanExercisesRepository.php</span> <em>(nowy)</em><span>src/controllers/WorkoutsController.php</span><span>public/views/workout-detail.html</span> <em>(nowy)</em></div>
+  <p><code>PlanExercisesRepository</code>: <code>getExercisesForPlan</code>, <code>addExerciseToPlan</code> (RETURNING id), <code>removeExerciseFromPlan</code>. <code>WorkoutsController::detail(planId)</code>: pobiera plan, ćwiczenia planu i globalne ćwiczenia do dropdownu.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">10</div>
+    <div class="commit-title">workouts: POST add/remove exercise + fix routera (2 grupy)</div>
+  </div>
+  <div class="files"><span>Routing.php</span><span>src/controllers/WorkoutsController.php</span></div>
+  <p>Fix routera — przekazywać 2 grupy przechwytywania: <code>$action($matches[1] ?? null, $matches[2] ?? null)</code>. Nowe trasy dla add-exercise i remove-exercise. Akcje: walidacja POST → wywołanie repo → redirect.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">11</div>
+    <div class="commit-title">sessions: SessionsRepository + Analytics widok</div>
+  </div>
+  <div class="files"><span>src/repositories/SessionsRepository.php</span> <em>(nowy)</em><span>src/controllers/AnalyticsController.php</span><span>public/views/analytics.html</span><span>Routing.php</span></div>
+  <p><code>SessionsRepository</code>: <code>getSessionsForUser</code>, <code>startSession</code> (RETURNING id), <code>endSession</code> (UPDATE <code>ended_at = NOW()</code>), <code>getActiveSession</code>. Widok analytics: baner aktywnej sesji + tabela historii.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">12</div>
+    <div class="commit-title">sessions: logowanie serii + widok aktywnej sesji</div>
+  </div>
+  <div class="files"><span>src/repositories/SessionExercisesRepository.php</span> <em>(nowy)</em><span>src/controllers/AnalyticsController.php</span><span>public/views/session-active.html</span> <em>(nowy)</em><span>Routing.php</span></div>
+  <p><code>SessionExercisesRepository</code>: <code>getExercisesForSession</code>, <code>addExerciseToSession</code>, <code>logSet</code>. Widok aktywnej sesji: lista ćwiczeń, formularze serii (weight, reps, RPE), przyciski End/Abort.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">13</div>
+    <div class="commit-title">views: współdzielony partial nav</div>
+  </div>
+  <div class="files"><span>public/views/partials/nav.html</span><span>wszystkie widoki authenticated</span></div>
+  <p>Zastąpić zduplikowany nav HTML przez <code>include partials/nav.html</code>. Partial otrzymuje <code>$currentPage</code> i <code>$displayName</code> — nadaje <code>class="active"</code> odpowiedniemu linkowi.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">14</div>
+    <div class="commit-title">auth: fix register form + is_active guard</div>
+  </div>
+  <div class="files"><span>public/views/register.html</span><span>src/controllers/SecurityController.php</span></div>
+  <p>Register form: <code>name="username"</code> → <code>name="display_name"</code>. Odblokować walidację zgodności haseł (TODO ~linia 63). <code>login()</code>: sprawdzić <code>$user->isActive()</code> — błąd dla zablokowanych kont.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">15</div>
+    <div class="commit-title">dashboard: widgety z prawdziwymi danymi</div>
+  </div>
+  <div class="files"><span>src/controllers/DashboardController.php</span><span>public/views/dashboard.html</span></div>
+  <p>Pobierać <code>activeSession</code> i <code>planCount</code> z repozytoriów. Widok: 2 karty statystyk + link "Continue Session" gdy sesja aktywna.</p>
+</div>
+
+<div class="commit">
+  <div class="commit-header">
+    <div class="commit-num">16</div>
+    <div class="commit-title">docs: aktualizacja CLAUDE.md</div>
+  </div>
+  <div class="files"><span>CLAUDE.md</span></div>
+  <p>Zaktualizować drzewo struktury projektu, sekcję schematu i wzorzec <code>withUserContext</code>.</p>
+</div>
+
+<h2>Kluczowe pułapki</h2>
+<table>
+  <tr><th>Problem</th><th>Rozwiązanie</th></tr>
+  <tr><td><code>current_setting</code> rzuca błąd gdy nie ustawiony</td><td>Używać <code>current_setting('app.current_user_id', true)</code> w politykach RLS</td></tr>
+  <tr><td><code>lastInsertId()</code> nie działa z UUID w PostgreSQL</td><td>Używać <code>RETURNING id</code> + <code>fetchColumn()</code></td></tr>
+  <tr><td>Router obsługuje tylko 1 grupę przechwytywania</td><td>Naprawić w Commit 10: <code>$action($matches[1], $matches[2] ?? null)</code></td></tr>
+  <tr><td><code>SET LOCAL</code> działa tylko w transakcji</td><td><code>beginTransaction()</code> zawsze przed <code>setUserContext()</code></td></tr>
+  <tr><td><code>citext</code> — email case-insensitive automatycznie</td><td>Nie potrzeba <code>LOWER()</code> w zapytaniach</td></tr>
+</table>
+
+<h2>Weryfikacja end-to-end</h2>
+<ol>
+  <li><code>docker-compose down -v &amp;&amp; docker-compose up -d</code> — sprawdzić brak błędów init.sql</li>
+  <li>Rejestracja nowego użytkownika → login → dashboard</li>
+  <li>Utworzyć plan, dodać ćwiczenia, usunąć ćwiczenie</li>
+  <li>Rozpocząć sesję, zalogować serie, zakończyć</li>
+  <li>Sprawdzić analytics — sesja w historii</li>
+  <li>pgAdmin (<code>localhost:5050</code>) — zweryfikować dane w tabelach</li>
+</ol>
+
+</body>
+</html>

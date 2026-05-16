@@ -47,6 +47,23 @@ class SessionsRepository extends Repository
         });
     }
 
+    public function getActiveSessionWithPlan(string $userId): ?array
+    {
+        return $this->withUserContext($userId, function () {
+            $query = $this->database->connect()->prepare(
+                "SELECT s.id, s.name, s.started_at, s.source_plan_id,
+                        wp.name AS plan_name
+                 FROM sessions s
+                 LEFT JOIN workout_plans wp ON wp.id = s.source_plan_id
+                 WHERE s.status = 'in_progress'
+                 LIMIT 1"
+            );
+            $query->execute();
+            $row = $query->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        });
+    }
+
     public function endSession(string $userId, string $sessionId): void
     {
         $this->withUserContext($userId, function () use ($sessionId) {

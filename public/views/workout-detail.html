@@ -2,96 +2,167 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
     <title><?= htmlspecialchars($plan['name']) ?> — GYM TRACKER</title>
   </head>
-  <body class="dashboard-body">
+  <body class="bg-surface-base text-white min-h-screen font-sans">
 
     <?php $currentPage = 'workouts'; include __DIR__ . '/partials/nav.html'; ?>
 
-    <main class="dash-main">
-      <div class="section-header">
-        <h1><?= htmlspecialchars($plan['name']) ?></h1>
-        <a href="/workouts">← Back</a>
+    <div class="max-w-[900px] mx-auto px-6 py-8">
+
+      <!-- Page header -->
+      <div class="mb-8">
+        <a href="/workouts" class="text-gray-500 text-xs uppercase tracking-widest hover:text-white inline-flex items-center gap-1 mb-4">
+          <i class="fa-solid fa-arrow-left text-[10px]"></i> Back to plans
+        </a>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Workout Plan</span>
+            <h1 class="text-3xl font-bold text-white mt-1 tracking-wide"><?= htmlspecialchars($plan['name']) ?></h1>
+          </div>
+        </div>
+
+        <!-- Meta chips -->
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+          <?php
+            $statusMap = [
+              'active'   => 'bg-brand-green/10 text-brand-green border-brand-green/30',
+              'routine'  => 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+              'draft'    => 'bg-gray-700/20 text-gray-400 border-gray-600/30',
+              'archived' => 'bg-red-900/20 text-red-400 border-red-900/30',
+            ];
+            $statusCls = $statusMap[$plan['status']] ?? $statusMap['draft'];
+          ?>
+          <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+            <?= htmlspecialchars($plan['status']) ?>
+          </span>
+          <?php if ($plan['intensity']): ?>
+            <span class="flex gap-0.5 items-center">
+              <?php for ($i = 1; $i <= 5; $i++): ?>
+                <span class="text-[10px] <?= $plan['intensity'] >= $i ? 'text-brand-green' : 'text-gray-700' ?>">●</span>
+              <?php endfor; ?>
+              <span class="text-gray-600 text-xs ml-1">intensity</span>
+            </span>
+          <?php endif; ?>
+          <?php if ($plan['duration_min']): ?>
+            <span class="text-gray-500 text-xs">
+              <i class="fa-regular fa-clock mr-1"></i><?= (int)$plan['duration_min'] ?> min
+            </span>
+          <?php endif; ?>
+        </div>
+
+        <?php if (!empty($plan['description'])): ?>
+          <p class="text-gray-400 text-sm mt-3 leading-relaxed max-w-xl">
+            <?= htmlspecialchars($plan['description']) ?>
+          </p>
+        <?php endif; ?>
       </div>
 
-      <p class="plan-meta">
-        <?= htmlspecialchars($plan['status']) ?>
-        &nbsp;·&nbsp;
-        <?= htmlspecialchars($plan['intensity']) ?>
-        <?php if ($plan['duration_min']): ?>
-          &nbsp;·&nbsp; <?= (int)$plan['duration_min'] ?> min
+      <!-- Exercises section -->
+      <section class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-white font-bold uppercase tracking-widest text-xs">
+            Exercises
+            <span class="ml-2 bg-surface-card border border-surface-border text-gray-400 text-[10px] px-1.5 py-0.5 rounded font-normal normal-case tracking-normal">
+              <?= count($planExercises) ?>
+            </span>
+          </h2>
+        </div>
+
+        <?php if (empty($planExercises)): ?>
+          <div class="bg-surface-raised border border-surface-border rounded-card px-6 py-10 text-center">
+            <i class="fa-solid fa-list text-2xl text-gray-700 mb-3 block"></i>
+            <p class="text-gray-500 text-sm">No exercises added yet.</p>
+            <p class="text-gray-600 text-xs mt-1">Use the form below to build your plan.</p>
+          </div>
+        <?php else: ?>
+          <div class="bg-surface-raised border border-surface-border rounded-card overflow-hidden">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="border-b border-surface-border">
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Exercise</th>
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Muscle Group</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">Sets</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">Reps</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">Rest</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($planExercises as $pe): ?>
+                  <tr class="border-b border-surface-border last:border-0 hover:bg-surface-card/50">
+                    <td class="px-4 py-3 text-sm text-white font-medium"><?= htmlspecialchars($pe['exercise_name']) ?></td>
+                    <td class="px-4 py-3 text-sm text-gray-400"><?= htmlspecialchars($pe['muscle_group']) ?></td>
+                    <td class="px-4 py-3 text-sm text-center <?= $pe['sets'] ? 'text-white' : 'text-gray-600' ?>"><?= $pe['sets'] ?? '—' ?></td>
+                    <td class="px-4 py-3 text-sm text-center <?= $pe['reps'] ? 'text-white' : 'text-gray-600' ?>"><?= $pe['reps'] ?? '—' ?></td>
+                    <td class="px-4 py-3 text-sm text-center <?= $pe['rest_sec'] ? 'text-white' : 'text-gray-600' ?>">
+                      <?= $pe['rest_sec'] ? $pe['rest_sec'] . 's' : '—' ?>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/remove-exercise" class="inline">
+                        <input type="hidden" name="plan_exercise_id" value="<?= htmlspecialchars($pe['id']) ?>" />
+                        <button type="submit"
+                          class="text-gray-600 hover:text-red-400 text-xs uppercase tracking-widest focus-visible:outline-none">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         <?php endif; ?>
-      </p>
+      </section>
 
-      <?php if (!empty($plan['description'])): ?>
-        <p><?= htmlspecialchars($plan['description']) ?></p>
-      <?php endif; ?>
+      <!-- Add exercise section -->
+      <section>
+        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Add Exercise</h2>
+        <div class="bg-surface-raised border border-surface-border rounded-card p-5">
+          <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/add-exercise">
 
-      <h2>Exercises</h2>
+            <div class="flex flex-col gap-1.5 mb-4">
+              <label for="exercise_id" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Exercise</label>
+              <select id="exercise_id" name="exercise_id" required
+                class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green w-full appearance-none">
+                <option value="">— select exercise —</option>
+                <?php foreach ($allExercises as $ex): ?>
+                  <option value="<?= htmlspecialchars($ex['id']) ?>">
+                    <?= htmlspecialchars($ex['name']) ?> — <?= htmlspecialchars($ex['muscle_group']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
 
-      <?php if (empty($planExercises)): ?>
-        <p>No exercises in this plan yet.</p>
-      <?php else: ?>
-        <table class="exercises-table">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Muscle group</th>
-              <th>Sets</th>
-              <th>Reps</th>
-              <th>Rest (s)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($planExercises as $pe): ?>
-              <tr>
-                <td><?= htmlspecialchars($pe['exercise_name']) ?></td>
-                <td><?= htmlspecialchars($pe['muscle_group']) ?></td>
-                <td><?= $pe['sets'] ?? '—' ?></td>
-                <td><?= $pe['reps'] ?? '—' ?></td>
-                <td><?= $pe['rest_sec'] ?? '—' ?></td>
-                <td>
-                  <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/remove-exercise">
-                    <input type="hidden" name="plan_exercise_id" value="<?= htmlspecialchars($pe['id']) ?>" />
-                    <button type="submit">Remove</button>
-                  </form>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      <?php endif; ?>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="sets" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Sets</label>
+                <input type="number" id="sets" name="sets" min="1" placeholder="3"
+                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="reps" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Reps</label>
+                <input type="number" id="reps" name="reps" min="1" placeholder="10"
+                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="rest_sec" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Rest (s)</label>
+                <input type="number" id="rest_sec" name="rest_sec" min="0" placeholder="90"
+                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
+              </div>
+            </div>
 
-      <h2>Add Exercise</h2>
-      <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/add-exercise">
-        <div class="form-group">
-          <label for="exercise_id">Exercise</label>
-          <select id="exercise_id" name="exercise_id" required>
-            <option value="">— select —</option>
-            <?php foreach ($allExercises as $ex): ?>
-              <option value="<?= htmlspecialchars($ex['id']) ?>">
-                <?= htmlspecialchars($ex['name']) ?> (<?= htmlspecialchars($ex['muscle_group']) ?>)
-              </option>
-            <?php endforeach; ?>
-          </select>
+            <button type="submit"
+              class="inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green">
+              <i class="fa-solid fa-plus text-[10px]"></i> Add Exercise
+            </button>
+
+          </form>
         </div>
-        <div class="form-group">
-          <label for="sets">Sets</label>
-          <input type="number" id="sets" name="sets" min="1" />
-        </div>
-        <div class="form-group">
-          <label for="reps">Reps</label>
-          <input type="number" id="reps" name="reps" min="1" />
-        </div>
-        <div class="form-group">
-          <label for="rest_sec">Rest (seconds)</label>
-          <input type="number" id="rest_sec" name="rest_sec" min="0" />
-        </div>
-        <button type="submit">Add Exercise</button>
-      </form>
-    </main>
+      </section>
+
+    </div>
 
   </body>
 </html>

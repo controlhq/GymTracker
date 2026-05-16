@@ -2,79 +2,158 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
     <title>Active Session — GYM TRACKER</title>
   </head>
-  <body class="dashboard-body">
+  <body class="bg-surface-base text-white min-h-screen font-sans">
 
     <?php $currentPage = 'analytics'; include __DIR__ . '/partials/nav.html'; ?>
 
-    <main class="dash-main">
-      <div class="section-header">
-        <h1>Active Session</h1>
+    <div class="max-w-[900px] mx-auto px-6 py-8">
+
+      <!-- Page header -->
+      <div class="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Live Tracking</span>
+          <h1 class="text-3xl font-bold text-white mt-1 tracking-wide">Active Session</h1>
+        </div>
         <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/end">
-          <button type="submit" class="btn-danger">End Session</button>
+          <button type="submit"
+            class="border border-red-900 text-red-500 text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded hover:bg-red-950 hover:text-red-300 focus-visible:outline-none">
+            <i class="fa-solid fa-stop text-[10px] mr-1"></i> End Session
+          </button>
         </form>
       </div>
 
-      <?php foreach ($exercises as $se): ?>
-        <div class="session-exercise-card">
-          <h3><?= htmlspecialchars($se['exercise_name']) ?> <small>(<?= htmlspecialchars($se['muscle_group']) ?>)</small></h3>
+      <!-- Exercises -->
+      <?php if (empty($exercises)): ?>
+        <div class="bg-surface-raised border border-surface-border rounded-card px-6 py-12 text-center mb-6">
+          <i class="fa-solid fa-dumbbell text-3xl text-gray-700 mb-3 block"></i>
+          <p class="text-gray-500 text-sm">No exercises added yet.</p>
+          <p class="text-gray-600 text-xs mt-1">Use the form below to add your first exercise.</p>
+        </div>
+      <?php else: ?>
+        <div class="flex flex-col gap-5 mb-8">
+          <?php foreach ($exercises as $se): ?>
+            <div class="bg-surface-raised border-l-4 border-brand-green rounded-card overflow-hidden">
 
-          <?php if (!empty($se['sets'])): ?>
-            <table class="sets-table">
-              <thead>
-                <tr><th>Set</th><th>Weight (kg)</th><th>Reps</th><th>RPE</th></tr>
-              </thead>
-              <tbody>
-                <?php foreach ($se['sets'] as $set): ?>
-                  <tr>
-                    <td><?= (int)$set['set_number'] ?></td>
-                    <td><?= $set['weight_kg'] ?? '—' ?></td>
-                    <td><?= $set['reps']      ?? '—' ?></td>
-                    <td><?= $set['rpe']       ?? '—' ?></td>
-                  </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          <?php endif; ?>
+              <!-- Exercise header -->
+              <div class="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+                <div>
+                  <h2 class="text-white font-bold uppercase tracking-wider">
+                    <?= htmlspecialchars($se['exercise_name_snapshot'] ?? $se['exercise_name'] ?? '') ?>
+                  </h2>
+                  <?php if (!empty($se['muscle_group'])): ?>
+                    <p class="text-gray-500 text-xs mt-0.5">
+                      <i class="fa-solid fa-circle-dot mr-1"></i><?= htmlspecialchars($se['muscle_group']) ?>
+                    </p>
+                  <?php endif; ?>
+                </div>
+                <span class="text-gray-600 text-xs"><?= count($se['sets']) ?> set<?= count($se['sets']) !== 1 ? 's' : '' ?></span>
+              </div>
 
-          <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/log-set">
-            <input type="hidden" name="session_exercise_id" value="<?= htmlspecialchars($se['id']) ?>" />
-            <input type="hidden" name="set_number" value="<?= count($se['sets']) + 1 ?>" />
-            <div class="set-inputs">
-              <input type="number" name="weight_kg" placeholder="kg" step="0.5" min="0" />
-              <input type="number" name="reps" placeholder="reps" min="1" />
-              <input type="number" name="rpe" placeholder="RPE" min="1" max="10" />
-              <button type="submit">Log Set</button>
+              <!-- Sets table -->
+              <?php if (!empty($se['sets'])): ?>
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b border-surface-border">
+                      <th class="px-5 py-2 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Set</th>
+                      <th class="px-5 py-2 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">Weight (kg)</th>
+                      <th class="px-5 py-2 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">Reps</th>
+                      <th class="px-5 py-2 text-center text-xs text-gray-500 uppercase tracking-widest font-medium">RPE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($se['sets'] as $set): ?>
+                      <tr class="border-b border-surface-border last:border-0">
+                        <td class="px-5 py-2.5 text-sm text-gray-300"><?= (int)$set['set_number'] ?></td>
+                        <td class="px-5 py-2.5 text-sm text-center <?= $set['weight_kg'] !== null ? 'text-white' : 'text-gray-600' ?>">
+                          <?= $set['weight_kg'] ?? '—' ?>
+                        </td>
+                        <td class="px-5 py-2.5 text-sm text-center <?= $set['reps'] !== null ? 'text-white' : 'text-gray-600' ?>">
+                          <?= $set['reps'] ?? '—' ?>
+                        </td>
+                        <td class="px-5 py-2.5 text-sm text-center <?= $set['rpe'] !== null ? 'text-white' : 'text-gray-600' ?>">
+                          <?= $set['rpe'] ?? '—' ?>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              <?php endif; ?>
+
+              <!-- Log set form -->
+              <div class="px-5 py-4 bg-surface-card/50">
+                <p class="text-gray-500 text-xs uppercase tracking-widest font-medium mb-3">
+                  Log Set <?= count($se['sets']) + 1 ?>
+                </p>
+                <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/log-set"
+                  class="flex flex-wrap items-end gap-3">
+                  <input type="hidden" name="session_exercise_id" value="<?= htmlspecialchars($se['id']) ?>" />
+                  <input type="hidden" name="set_number" value="<?= count($se['sets']) + 1 ?>" />
+
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-500 uppercase tracking-widest">kg</label>
+                    <input type="number" name="weight_kg" step="0.5" min="0" placeholder="80"
+                      class="w-20 bg-surface-card border border-surface-border rounded px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green" />
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-500 uppercase tracking-widest">Reps</label>
+                    <input type="number" name="reps" min="1" placeholder="10"
+                      class="w-20 bg-surface-card border border-surface-border rounded px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green" />
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-500 uppercase tracking-widest">RPE</label>
+                    <input type="number" name="rpe" min="1" max="10" placeholder="8"
+                      class="w-20 bg-surface-card border border-surface-border rounded px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green" />
+                  </div>
+
+                  <button type="submit"
+                    class="inline-flex items-center gap-1.5 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-4 py-2 rounded hover:opacity-90 focus-visible:outline-none">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Log Set
+                  </button>
+                </form>
+              </div>
+
             </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+      <!-- Add exercise -->
+      <section>
+        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Add Exercise</h2>
+        <div class="bg-surface-raised border border-surface-border rounded-card p-5">
+          <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/add-exercise"
+            class="flex flex-wrap items-end gap-3">
+
+            <div class="flex flex-col gap-1 flex-1 min-w-48">
+              <label for="exercise_id_select" class="text-xs text-gray-500 uppercase tracking-widest">Exercise</label>
+              <select id="exercise_id_select" name="exercise_id" required
+                onchange="document.getElementById('exercise_name_input').value = this.options[this.selectedIndex].dataset.name"
+                class="bg-surface-card border border-surface-border rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-green appearance-none">
+                <option value="" data-name="">— select exercise —</option>
+                <?php foreach ($allExercises as $ex): ?>
+                  <option value="<?= htmlspecialchars($ex['id']) ?>" data-name="<?= htmlspecialchars($ex['name']) ?>">
+                    <?= htmlspecialchars($ex['name']) ?> — <?= htmlspecialchars($ex['muscle_group']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <input type="hidden" name="exercise_name" id="exercise_name_input" value="" />
+            </div>
+
+            <button type="submit"
+              class="inline-flex items-center gap-1.5 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2 rounded hover:opacity-90 focus-visible:outline-none">
+              <i class="fa-solid fa-plus text-[10px]"></i> Add
+            </button>
+
           </form>
         </div>
-      <?php endforeach; ?>
+      </section>
 
-      <div class="add-exercise-section">
-        <h2>Add Exercise</h2>
-        <form method="POST" action="/analytics/session/<?= htmlspecialchars($sessionId) ?>/add-exercise">
-          <div class="form-group">
-            <select name="exercise_id" id="exercise_id_select" required onchange="syncExerciseName(this)">
-              <option value="" data-name="">— select exercise —</option>
-              <?php foreach ($allExercises as $ex): ?>
-                <option value="<?= htmlspecialchars($ex['id']) ?>" data-name="<?= htmlspecialchars($ex['name']) ?>">
-                  <?= htmlspecialchars($ex['name']) ?> (<?= htmlspecialchars($ex['muscle_group']) ?>)
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <input type="hidden" name="exercise_name" id="exercise_name_input" value="" />
-            <button type="submit">Add</button>
-            <script>
-              function syncExerciseName(sel) {
-                document.getElementById('exercise_name_input').value = sel.options[sel.selectedIndex].dataset.name;
-              }
-            </script>
-          </div>
-        </form>
-      </div>
-    </main>
+    </div>
 
   </body>
 </html>

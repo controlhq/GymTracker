@@ -2,35 +2,20 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
     <title>Dashboard — GYM TRACKER</title>
   </head>
-  <body class="dashboard-body">
+  <body class="bg-surface-base text-white min-h-screen font-sans">
 
     <?php $currentPage = 'dashboard'; include __DIR__ . '/partials/nav.html'; ?>
 
-    <main class="dash-main">
-      <h1>Welcome, <?= htmlspecialchars($displayName) ?></h1>
-
-      <div class="dashboard-widgets">
-        <div class="widget">
-          <h2>Workout Plans</h2>
-          <p class="widget-value"><?= (int)$planCount ?></p>
-          <a href="/workouts">View plans</a>
-        </div>
-
-        <div class="widget">
-          <h2>Active Session</h2>
-          <?php if ($activeSession): ?>
-            <p class="widget-value">In progress</p>
-            <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>">Continue Session</a>
-          <?php else: ?>
-            <p class="widget-value">—</p>
-            <a href="/analytics">Start session</a>
-          <?php endif; ?>
-        </div>
+    <div id="dash-root" class="hidden">
+      <div class="flex flex-col md:flex-row gap-6 p-6 md:p-8 max-w-[1400px] mx-auto">
+        <main id="dash-main" class="flex-1 min-w-0"></main>
+        <aside id="dash-sidebar" class="flex flex-col gap-4 md:w-80 md:flex-shrink-0 hidden"></aside>
       </div>
-    </main>
+    </div>
 
+    <script src="/public/scripts/dashboard.js"></script>
   </body>
 </html>

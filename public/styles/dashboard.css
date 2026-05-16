@@ -26,9 +26,10 @@
 .dash-nav-logo {
   color: #39ff14;
   font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 3px;
+  font-size: 1.35rem;
+  letter-spacing: 2px;
   margin-right: 3rem;
+  text-shadow: 0 0 6px #22d3ee, 0 0 12px #22d3ee;
 }
 
 .dash-nav-links {

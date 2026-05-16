@@ -2,68 +2,165 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
     <title>Analytics — GYM TRACKER</title>
   </head>
-  <body class="dashboard-body">
+  <body class="bg-surface-base text-white min-h-screen font-sans">
 
     <?php $currentPage = 'analytics'; include __DIR__ . '/partials/nav.html'; ?>
 
-    <main class="dash-main">
-      <h1>Analytics</h1>
+    <?php
+      $completed  = array_filter($sessions, fn($s) => $s['ended_at'] !== null);
+      $totalMins  = 0;
+      foreach ($completed as $s) {
+          $diff = (new DateTime($s['ended_at']))->getTimestamp()
+                - (new DateTime($s['started_at']))->getTimestamp();
+          $totalMins += (int)($diff / 60);
+      }
+      $totalHours = floor($totalMins / 60);
+      $remMins    = $totalMins % 60;
+    ?>
 
-      <?php if ($activeSession): ?>
-        <div class="active-session-banner">
-          <span>Session in progress — started <?= htmlspecialchars($activeSession['started_at']) ?></span>
-          <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>">Continue</a>
-          <form method="POST" action="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>/end" style="display:inline">
-            <button type="submit">End Session</button>
-          </form>
+    <div class="max-w-[1000px] mx-auto px-6 py-8">
+
+      <!-- Page header -->
+      <div class="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Training</span>
+          <h1 class="text-3xl font-bold text-white mt-1 tracking-wide">Analytics</h1>
+          <p class="text-gray-400 text-sm mt-1"><?= count($sessions) ?> session<?= count($sessions) !== 1 ? 's' : '' ?> recorded</p>
         </div>
-      <?php else: ?>
-        <form method="POST" action="/analytics/session/start">
-          <button type="submit">Start New Session</button>
-        </form>
+
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-3 gap-4 mb-8">
+        <div class="bg-surface-raised border border-surface-border rounded-card p-4">
+          <p class="text-gray-500 text-xs uppercase tracking-widest mb-1">Total Sessions</p>
+          <p class="text-2xl font-bold text-white"><?= count($sessions) ?></p>
+        </div>
+        <div class="bg-surface-raised border border-surface-border rounded-card p-4">
+          <p class="text-gray-500 text-xs uppercase tracking-widest mb-1">Completed</p>
+          <p class="text-2xl font-bold text-white"><?= count($completed) ?></p>
+        </div>
+        <div class="bg-surface-raised border border-surface-border rounded-card p-4">
+          <p class="text-gray-500 text-xs uppercase tracking-widest mb-1">Total Time</p>
+          <p class="text-2xl font-bold text-white">
+            <?php if ($totalMins === 0): ?>
+              <span class="text-gray-600">—</span>
+            <?php elseif ($totalHours > 0): ?>
+              <?= $totalHours ?>h <?= $remMins ?>m
+            <?php else: ?>
+              <?= $totalMins ?> min
+            <?php endif; ?>
+          </p>
+        </div>
+      </div>
+
+      <!-- Active session banner -->
+      <?php if ($activeSession): ?>
+        <?php
+          $bannerStart = new DateTime($activeSession['started_at']);
+          $elapsedMins = (int)((time() - $bannerStart->getTimestamp()) / 60);
+        ?>
+        <div class="bg-surface-raised border-l-4 border-brand-green rounded-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Live</span>
+            <p class="text-white font-bold mt-0.5">Session in progress</p>
+            <p class="text-gray-400 text-xs mt-1">
+              Started <?= $bannerStart->format('H:i') ?> &bull; <?= $elapsedMins ?> min elapsed
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>"
+              class="inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-4 py-2 rounded hover:opacity-90">
+              Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+            <form method="POST" action="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>/end">
+              <button type="submit"
+                class="border border-red-900 text-red-500 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded hover:bg-red-950 hover:text-red-300 focus-visible:outline-none">
+                End
+              </button>
+            </form>
+          </div>
+        </div>
       <?php endif; ?>
 
-      <h2>Session History</h2>
+      <!-- Session history -->
+      <section>
+        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Session History</h2>
 
-      <?php if (empty($sessions)): ?>
-        <p>No sessions recorded yet.</p>
-      <?php else: ?>
-        <table class="sessions-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Plan</th>
-              <th>Duration</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($sessions as $session): ?>
-              <tr>
-                <td><?= htmlspecialchars($session['started_at']) ?></td>
-                <td><?= htmlspecialchars($session['plan_name'] ?? '—') ?></td>
-                <td>
-                  <?php if ($session['ended_at']): ?>
-                    <?php
-                      $start = new DateTime($session['started_at']);
-                      $end   = new DateTime($session['ended_at']);
-                      $diff  = $start->diff($end);
-                      echo $diff->format('%H:%I:%S');
-                    ?>
-                  <?php else: ?>
-                    —
-                  <?php endif; ?>
-                </td>
-                <td><?= $session['ended_at'] ? 'Completed' : 'Active' ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      <?php endif; ?>
-    </main>
+        <?php if (empty($sessions)): ?>
+          <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
+            <div class="w-16 h-16 rounded-card bg-surface-card border border-surface-border flex items-center justify-center">
+              <i class="fa-solid fa-chart-simple text-2xl text-gray-600"></i>
+            </div>
+            <p class="text-white font-bold">No sessions yet</p>
+            <p class="text-gray-500 text-sm max-w-xs">Start your first session and your training history will appear here.</p>
+          </div>
+        <?php else: ?>
+          <div class="bg-surface-raised border border-surface-border rounded-card overflow-hidden">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="border-b border-surface-border">
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Date</th>
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Plan</th>
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Duration</th>
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium">Status</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($sessions as $s):
+                  $start     = new DateTime($s['started_at']);
+                  $isActive  = $s['ended_at'] === null;
+                  $durLabel  = '—';
+                  if (!$isActive) {
+                      $totalSec = (new DateTime($s['ended_at']))->getTimestamp() - $start->getTimestamp();
+                      $mins     = (int)($totalSec / 60);
+                      $secs     = $totalSec % 60;
+                      $durLabel = $mins . ' min ' . $secs . ' s';
+                  }
+                ?>
+                  <tr class="border-b border-surface-border last:border-0 hover:bg-surface-card/50">
+                    <td class="px-4 py-3">
+                      <p class="text-white text-sm"><?= $start->format('M j, Y') ?></p>
+                      <p class="text-gray-500 text-xs mt-0.5"><?= $start->format('H:i') ?></p>
+                    </td>
+                    <td class="px-4 py-3 text-sm <?= !empty($s['plan_name']) ? 'text-white' : 'text-gray-600' ?>">
+                      <?= htmlspecialchars($s['plan_name'] ?? '—') ?>
+                    </td>
+                    <td class="px-4 py-3 text-sm <?= $isActive ? 'text-gray-600' : 'text-white' ?>">
+                      <?= $durLabel ?>
+                    </td>
+                    <td class="px-4 py-3">
+                      <?php if ($isActive): ?>
+                        <span class="bg-brand-green/10 text-brand-green border border-brand-green/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                          Active
+                        </span>
+                      <?php else: ?>
+                        <span class="bg-gray-700/20 text-gray-400 border border-gray-600/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                          Done
+                        </span>
+                      <?php endif; ?>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <?php if ($isActive): ?>
+                        <a href="/analytics/session/<?= htmlspecialchars($s['id']) ?>"
+                          class="text-brand-green text-xs hover:underline">
+                          Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                      <?php endif; ?>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php endif; ?>
+      </section>
+
+    </div>
 
   </body>
 </html>

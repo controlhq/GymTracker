@@ -27,6 +27,10 @@ class Routing {
             "controller" => "DashboardController",
             "action" => "index"
         ],
+        "^dashboard/api/active-session$" => [
+            "controller" => "DashboardController",
+            "action" => "apiActiveSession"
+        ],
         // ^dashboard/([0-9]+)$ wyłapie dashboard/ oraz cyfry po ukośniku
         "^dashboard/([0-9]+)$" => [
             "controller" => "DashboardController",

@@ -2,44 +2,99 @@
 <html lang="en">
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
-    <link rel="stylesheet" type="text/css" href="public/styles/dashboard.css" />
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
     <title>Workouts — GYM TRACKER</title>
   </head>
-  <body class="dashboard-body">
+  <body class="bg-surface-base text-white min-h-screen font-sans">
 
     <?php $currentPage = 'workouts'; include __DIR__ . '/partials/nav.html'; ?>
 
-    <main class="dash-main">
-      <div class="section-header">
-        <h1>Workout Plans</h1>
-        <a href="/workouts/create" class="btn-primary">+ New Plan</a>
+    <div class="max-w-[1200px] mx-auto px-6 py-8">
+
+      <!-- Page header -->
+      <div class="flex items-start justify-between mb-8">
+        <div>
+          <span class="text-brand-green text-xs font-bold uppercase tracking-widest">My Plans</span>
+          <h1 class="text-3xl font-bold text-white mt-1 tracking-wide">Workout Plans</h1>
+          <p class="text-gray-400 text-sm mt-1"><?= count($plans) ?> plan<?= count($plans) !== 1 ? 's' : '' ?></p>
+        </div>
+        <a href="/workouts/create"
+          class="inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green">
+          <i class="fa-solid fa-plus"></i> New Plan
+        </a>
       </div>
 
       <?php if (empty($plans)): ?>
-        <p>No workout plans yet. <a href="/workouts/create">Create your first plan</a>.</p>
+
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center py-24 gap-4 text-center">
+          <div class="w-16 h-16 rounded-card bg-surface-card border border-surface-border flex items-center justify-center">
+            <i class="fa-solid fa-dumbbell text-2xl text-gray-600"></i>
+          </div>
+          <p class="text-white font-bold text-lg">No workout plans yet</p>
+          <p class="text-gray-500 text-sm max-w-xs">Create your first plan and start building your training routine.</p>
+          <a href="/workouts/create"
+            class="mt-2 inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded hover:opacity-90">
+            <i class="fa-solid fa-plus"></i> Create Plan
+          </a>
+        </div>
+
       <?php else: ?>
-        <div class="plans-list">
-          <?php foreach ($plans as $plan): ?>
-            <div class="plan-card">
-              <a href="/workouts/<?= htmlspecialchars($plan['id']) ?>">
-                <h3><?= htmlspecialchars($plan['name']) ?></h3>
-              </a>
-              <p class="plan-meta">
-                <?= htmlspecialchars($plan['status']) ?>
-                &nbsp;·&nbsp;
-                <?= htmlspecialchars($plan['intensity']) ?>
-                <?php if ($plan['duration_min']): ?>
-                  &nbsp;·&nbsp; <?= (int)$plan['duration_min'] ?> min
+
+        <!-- Plans grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <?php foreach ($plans as $plan):
+            $statusMap = [
+              'active'   => 'bg-brand-green/10 text-brand-green border-brand-green/30',
+              'routine'  => 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+              'draft'    => 'bg-gray-700/20 text-gray-400 border-gray-600/30',
+              'archived' => 'bg-red-900/20 text-red-400 border-red-900/30',
+            ];
+            $statusCls = $statusMap[$plan['status']] ?? $statusMap['draft'];
+          ?>
+            <a href="/workouts/<?= htmlspecialchars($plan['id']) ?>"
+              class="flex flex-col bg-surface-raised border border-surface-border rounded-card p-5 hover:border-brand-green/40 group transition-colors">
+
+              <div class="flex items-center justify-between mb-4">
+                <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                  <?= htmlspecialchars($plan['status']) ?>
+                </span>
+                <?php if ($plan['intensity']): ?>
+                  <span class="flex gap-0.5">
+                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                      <span class="text-[10px] <?= $plan['intensity'] >= $i ? 'text-brand-green' : 'text-gray-700' ?>">●</span>
+                    <?php endfor; ?>
+                  </span>
                 <?php endif; ?>
-              </p>
+              </div>
+
+              <h3 class="text-white font-bold text-base leading-tight group-hover:text-brand-green transition-colors">
+                <?= htmlspecialchars($plan['name']) ?>
+              </h3>
+
               <?php if (!empty($plan['description'])): ?>
-                <p class="plan-desc"><?= htmlspecialchars($plan['description']) ?></p>
+                <p class="text-gray-500 text-xs mt-2 line-clamp-2 leading-relaxed">
+                  <?= htmlspecialchars($plan['description']) ?>
+                </p>
               <?php endif; ?>
-            </div>
+
+              <div class="mt-auto pt-4 flex items-center gap-4">
+                <?php if ($plan['duration_min']): ?>
+                  <span class="text-gray-600 text-xs">
+                    <i class="fa-regular fa-clock mr-1"></i><?= (int)$plan['duration_min'] ?> min
+                  </span>
+                <?php endif; ?>
+                <span class="ml-auto text-brand-green text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                  View <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </span>
+              </div>
+
+            </a>
           <?php endforeach; ?>
         </div>
+
       <?php endif; ?>
-    </main>
+    </div>
 
   </body>
 </html>
