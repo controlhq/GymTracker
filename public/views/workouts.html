@@ -3,7 +3,7 @@
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
     <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
-    <title>Workouts — GYM TRACKER</title>
+    <title>Workouts - GYM TRACKER</title>
   </head>
   <body class="bg-surface-base text-white min-h-screen font-sans">
 
@@ -52,49 +52,94 @@
             ];
             $statusCls = $statusMap[$plan['status']] ?? $statusMap['draft'];
           ?>
-            <a href="/workouts/<?= htmlspecialchars($plan['id']) ?>"
-              class="flex flex-col bg-surface-raised border border-surface-border rounded-card p-5 hover:border-brand-green/40 group transition-colors">
+            <div class="relative flex flex-col bg-surface-raised border border-surface-border rounded-card hover:border-brand-green/40 group transition-colors">
 
-              <div class="flex items-center justify-between mb-4">
-                <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
-                  <?= htmlspecialchars($plan['status']) ?>
-                </span>
-                <?php if ($plan['intensity']): ?>
-                  <span class="flex gap-0.5">
-                    <?php for ($i = 1; $i <= 5; $i++): ?>
-                      <span class="text-[10px] <?= $plan['intensity'] >= $i ? 'text-brand-green' : 'text-gray-700' ?>">●</span>
-                    <?php endfor; ?>
+              <button type="button"
+                onclick="showDeleteModal('<?= htmlspecialchars($plan['id']) ?>', '<?= htmlspecialchars(addslashes($plan['name'])) ?>')"
+                class="absolute z-10 w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors focus-visible:outline-none"
+                style="top:12px;right:12px">
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </button>
+
+              <a href="/workouts/<?= htmlspecialchars($plan['id']) ?>" class="flex flex-col flex-1 p-5">
+
+                <div class="flex items-center mb-4 pr-6">
+                  <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                    <?= htmlspecialchars($plan['status']) ?>
                   </span>
+                </div>
+
+                <h3 class="text-white font-bold text-base leading-tight group-hover:text-brand-green transition-colors">
+                  <?= htmlspecialchars($plan['name']) ?>
+                </h3>
+
+                <?php if (!empty($plan['description'])): ?>
+                  <p class="text-gray-500 text-xs mt-2 line-clamp-2 leading-relaxed">
+                    <?= htmlspecialchars($plan['description']) ?>
+                  </p>
                 <?php endif; ?>
-              </div>
 
-              <h3 class="text-white font-bold text-base leading-tight group-hover:text-brand-green transition-colors">
-                <?= htmlspecialchars($plan['name']) ?>
-              </h3>
-
-              <?php if (!empty($plan['description'])): ?>
-                <p class="text-gray-500 text-xs mt-2 line-clamp-2 leading-relaxed">
-                  <?= htmlspecialchars($plan['description']) ?>
-                </p>
-              <?php endif; ?>
-
-              <div class="mt-auto pt-4 flex items-center gap-4">
-                <?php if ($plan['duration_min']): ?>
-                  <span class="text-gray-600 text-xs">
-                    <i class="fa-regular fa-clock mr-1"></i><?= (int)$plan['duration_min'] ?> min
+                <div class="mt-auto pt-4 flex items-center gap-3">
+                  <?php if ($plan['duration_min']): ?>
+                    <span class="text-gray-600 text-xs">
+                      <i class="fa-regular fa-clock mr-1"></i><?= (int)$plan['duration_min'] ?> min
+                    </span>
+                  <?php endif; ?>
+                  <span class="ml-auto text-brand-green text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    View <i class="fa-solid fa-arrow-right text-[10px]"></i>
                   </span>
-                <?php endif; ?>
-                <span class="ml-auto text-brand-green text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                  View <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </span>
-              </div>
+                  <?php if ($plan['intensity']): ?>
+                    <span class="flex gap-0.5">
+                      <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <span class="text-[10px] <?= $plan['intensity'] >= $i ? 'text-brand-green' : 'text-gray-700' ?>">●</span>
+                      <?php endfor; ?>
+                    </span>
+                  <?php endif; ?>
+                </div>
 
-            </a>
+              </a>
+            </div>
           <?php endforeach; ?>
         </div>
 
       <?php endif; ?>
     </div>
+
+    <!-- Delete confirmation modal -->
+    <div id="delete-modal" class="hidden fixed flex items-center justify-center" style="inset:0;z-index:200;background:rgba(0,0,0,0.6)">
+      <div class="bg-surface-raised border border-surface-border rounded-card p-6 w-80 mx-4">
+        <h3 class="text-white font-bold text-base mb-1">Delete plan?</h3>
+        <p class="text-gray-400 text-sm mb-6">
+          "<span id="delete-modal-name" class="text-white"></span>" will be permanently removed.
+        </p>
+        <div class="flex gap-3 justify-end">
+          <button type="button" onclick="closeDeleteModal()"
+            class="px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white border border-surface-border rounded hover:border-gray-500 transition-colors focus-visible:outline-none">
+            Cancel
+          </button>
+          <form id="delete-modal-form" method="POST" class="inline">
+            <button type="submit"
+              class="px-4 py-2 text-xs font-bold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/30 rounded hover:bg-red-500/20 transition-colors focus-visible:outline-none">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showDeleteModal(planId, planName) {
+        document.getElementById('delete-modal-name').textContent = planName;
+        document.getElementById('delete-modal-form').action = '/workouts/' + planId + '/delete';
+        document.getElementById('delete-modal').classList.remove('hidden');
+      }
+      function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+      }
+      document.getElementById('delete-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+      });
+    </script>
 
   </body>
 </html>

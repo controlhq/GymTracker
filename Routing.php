@@ -48,7 +48,7 @@ class Routing {
             "controller" => "AnalyticsController",
             "action" => "activeSession"
         ],
-        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(end|add-exercise|log-set)$" => [
+        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(end|add-exercise|log-set|delete)$" => [
             "controller" => "AnalyticsController",
             "action" => "handleSession"
         ],
@@ -68,7 +68,7 @@ class Routing {
             "controller" => "WorkoutsController",
             "action" => "detail"
         ],
-        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(add-exercise|remove-exercise)$" => [
+        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(add-exercise|remove-exercise|delete)$" => [
             "controller" => "WorkoutsController",
             "action" => "handleExercise"
         ],

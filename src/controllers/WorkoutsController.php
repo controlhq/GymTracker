@@ -84,6 +84,12 @@ class WorkoutsController extends AppController
         $userId = $_SESSION['user_id'];
         $url    = "http://$_SERVER[HTTP_HOST]";
 
+        if ($action === 'delete') {
+            $this->plansRepository->deletePlan($userId, $planId);
+            header("Location: {$url}/workouts");
+            return;
+        }
+
         if ($action === 'add-exercise') {
             $exerciseId = $_POST['exercise_id'] ?? '';
             $sets       = isset($_POST['sets'])     && $_POST['sets']     !== '' ? (int)$_POST['sets']     : null;
