@@ -59,9 +59,9 @@
         <?php endif; ?>
       </div>
 
-      <!-- Exercises section -->
-      <section class="mb-8">
-        <div class="flex items-center justify-between mb-4">
+      <!-- 1. Exercises table -->
+      <section class="mb-6">
+        <div class="flex items-center mb-4">
           <h2 class="text-white font-bold uppercase tracking-widest text-xs">
             Exercises
             <span class="ml-2 bg-surface-card border border-surface-border text-gray-400 text-[10px] px-1.5 py-0.5 rounded font-normal normal-case tracking-normal">
@@ -74,7 +74,7 @@
           <div class="bg-surface-raised border border-surface-border rounded-card px-6 py-10 text-center">
             <i class="fa-solid fa-list text-2xl text-gray-700 mb-3 block"></i>
             <p class="text-gray-500 text-sm">No exercises added yet.</p>
-            <p class="text-gray-600 text-xs mt-1">Use the form below to build your plan.</p>
+            <p class="text-gray-600 text-xs mt-1">Select an exercise below and click Add Exercise.</p>
           </div>
         <?php else: ?>
           <div class="bg-surface-raised border border-surface-border rounded-card overflow-hidden">
@@ -94,16 +94,15 @@
                   <tr class="border-b border-surface-border last:border-0 hover:bg-surface-card/50">
                     <td class="px-4 py-3 text-sm text-white font-medium"><?= htmlspecialchars($pe['exercise_name']) ?></td>
                     <td class="px-4 py-3 text-sm text-gray-400"><?= htmlspecialchars($pe['muscle_group']) ?></td>
-                    <td class="px-4 py-3 text-sm text-center <?= $pe['sets'] ? 'text-white' : 'text-gray-600' ?>"><?= $pe['sets'] ?? '—' ?></td>
-                    <td class="px-4 py-3 text-sm text-center <?= $pe['reps'] ? 'text-white' : 'text-gray-600' ?>"><?= $pe['reps'] ?? '—' ?></td>
-                    <td class="px-4 py-3 text-sm text-center <?= $pe['rest_sec'] ? 'text-white' : 'text-gray-600' ?>">
-                      <?= $pe['rest_sec'] ? $pe['rest_sec'] . 's' : '—' ?>
+                    <td class="px-4 py-3 text-sm text-center <?= ($pe['sets'] ?? null) ? 'text-white' : 'text-gray-600' ?>"><?= $pe['sets'] ?? '—' ?></td>
+                    <td class="px-4 py-3 text-sm text-center <?= ($pe['reps'] ?? null) ? 'text-white' : 'text-gray-600' ?>"><?= $pe['reps'] ?? '—' ?></td>
+                    <td class="px-4 py-3 text-sm text-center <?= ($pe['rest_sec'] ?? null) ? 'text-white' : 'text-gray-600' ?>">
+                      <?= ($pe['rest_sec'] ?? null) ? $pe['rest_sec'] . 's' : '—' ?>
                     </td>
                     <td class="px-4 py-3 text-right">
                       <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/remove-exercise" class="inline">
                         <input type="hidden" name="plan_exercise_id" value="<?= htmlspecialchars($pe['id']) ?>" />
-                        <button type="submit"
-                          class="text-gray-600 hover:text-red-400 text-xs uppercase tracking-widest focus-visible:outline-none">
+                        <button type="submit" class="text-gray-600 hover:text-red-400 text-xs uppercase tracking-widest focus-visible:outline-none">
                           <i class="fa-solid fa-xmark"></i>
                         </button>
                       </form>
@@ -116,51 +115,167 @@
         <?php endif; ?>
       </section>
 
-      <!-- Add exercise section -->
+      <!-- 2. Add table — selected exercise + sets/reps/rest + button -->
+      <section class="mb-6">
+        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-3">Add Exercise</h2>
+
+        <form id="add-exercise-form" method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/add-exercise">
+          <input type="hidden" id="exercise_id" name="exercise_id" value="" />
+
+          <div class="bg-surface-raised border border-surface-border rounded-card overflow-hidden">
+            <table class="w-full border-collapse" style="table-layout:auto">
+              <thead>
+                <tr class="border-b border-surface-border">
+                  <th class="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-widest font-medium" style="width: 40%">Exercise</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium" style="width:80px">Sets</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium" style="width:80px">Reps</th>
+                  <th class="px-4 py-3 text-center text-xs text-gray-500 uppercase tracking-widest font-medium" style="width:96px">Rest (s)</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="px-4 py-3">
+                    <span id="add-exercise-name" class="text-sm text-gray-500 italic block truncate">— select below —</span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <input type="number" name="sets" min="1" placeholder="3"
+                      class="bg-surface-card border border-surface-border rounded px-2 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-16 text-center" />
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <input type="number" name="reps" min="1" placeholder="10"
+                      class="bg-surface-card border border-surface-border rounded px-2 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-16 text-center" />
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <input type="number" name="rest_sec" min="0" placeholder="90"
+                      class="bg-surface-card border border-surface-border rounded px-2 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-20 text-center" />
+                  </td>
+                  <td class="pr-4 py-3 text-right">
+                    <div class="flex justify-end w-full">
+                      <button type="submit" id="submit-btn" disabled
+                        class="inline-flex items-center gap-1.5 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-[10px] px-4 py-2 rounded opacity-40 cursor-not-allowed focus-visible:outline-none whitespace-nowrap">
+                        <i class="fa-solid fa-plus text-[9px]"></i> Add Exercise
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </form>
+      </section>
+
+      <!-- 3. Exercise picker — klik podświetla wiersz -->
       <section>
-        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Add Exercise</h2>
+        <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-3">Select Exercise</h2>
         <div class="bg-surface-raised border border-surface-border rounded-card p-5">
-          <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/add-exercise">
 
-            <div class="flex flex-col gap-1.5 mb-4">
-              <label for="exercise_id" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Exercise</label>
-              <select id="exercise_id" name="exercise_id" required
-                class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green w-full appearance-none">
-                <option value="">— select exercise —</option>
-                <?php foreach ($allExercises as $ex): ?>
-                  <option value="<?= htmlspecialchars($ex['id']) ?>">
-                    <?= htmlspecialchars($ex['name']) ?> — <?= htmlspecialchars($ex['muscle_group']) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3 mb-5">
-              <div class="flex flex-col gap-1.5">
-                <label for="sets" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Sets</label>
-                <input type="number" id="sets" name="sets" min="1" placeholder="3"
-                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <label for="reps" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Reps</label>
-                <input type="number" id="reps" name="reps" min="1" placeholder="10"
-                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <label for="rest_sec" class="text-xs text-gray-400 uppercase tracking-widest font-medium">Rest (s)</label>
-                <input type="number" id="rest_sec" name="rest_sec" min="0" placeholder="90"
-                  class="bg-surface-card border border-surface-border rounded px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-full" />
-              </div>
-            </div>
-
-            <button type="submit"
-              class="inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green">
-              <i class="fa-solid fa-plus text-[10px]"></i> Add Exercise
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            <button type="button" data-filter="all"
+              class="filter-btn active-filter text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded border border-brand-green bg-brand-green/10 text-brand-green">
+              All
             </button>
+            <?php
+              $groupsSeen = [];
+              foreach ($allExercises as $ex):
+                $slug = $ex['muscle_group_slug'];
+                if (isset($groupsSeen[$slug])) continue;
+                $groupsSeen[$slug] = $ex['muscle_group'];
+              endforeach;
+              ksort($groupsSeen);
+              foreach ($groupsSeen as $slug => $name):
+            ?>
+            <button type="button" data-filter="<?= htmlspecialchars($slug) ?>"
+              class="filter-btn text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded border border-surface-border text-gray-400 hover:border-gray-500 hover:text-white">
+              <?= htmlspecialchars($name) ?>
+            </button>
+            <?php endforeach; ?>
 
-          </form>
+            <input id="exercise-search" type="text" placeholder="Search…"
+              class="ml-auto bg-surface-card border border-surface-border rounded px-3 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-green w-40" />
+          </div>
+
+          <div id="exercise-list"
+            class="border border-surface-border rounded overflow-hidden max-h-56 overflow-y-auto divide-y divide-surface-border">
+            <?php foreach ($allExercises as $ex): ?>
+              <div class="exercise-row flex items-center justify-between px-4 py-2.5 hover:bg-surface-card/60 cursor-pointer"
+                data-id="<?= htmlspecialchars($ex['id']) ?>"
+                data-name="<?= htmlspecialchars($ex['name']) ?>"
+                data-group="<?= htmlspecialchars($ex['muscle_group_slug']) ?>"
+                data-search="<?= htmlspecialchars(strtolower($ex['name'] . ' ' . $ex['muscle_group'])) ?>">
+                <div>
+                  <span class="text-sm text-white font-medium"><?= htmlspecialchars($ex['name']) ?></span>
+                  <span class="text-xs text-gray-500 ml-2"><?= htmlspecialchars($ex['muscle_group']) ?></span>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border
+                  <?php
+                    echo match($ex['exercise_type']) {
+                      'compound'  => 'border-blue-500/30 text-blue-400',
+                      'isolation' => 'border-purple-500/30 text-purple-400',
+                      'mobility'  => 'border-yellow-500/30 text-yellow-400',
+                      'cardio'    => 'border-orange-500/30 text-orange-400',
+                      default     => 'border-gray-600 text-gray-400',
+                    };
+                  ?>">
+                  <?= htmlspecialchars($ex['exercise_type']) ?>
+                </span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+
         </div>
       </section>
+
+      <script>
+        (function () {
+          const rows       = document.querySelectorAll('.exercise-row');
+          const filterBtns = document.querySelectorAll('.filter-btn');
+          const search     = document.getElementById('exercise-search');
+          const hiddenId   = document.getElementById('exercise_id');
+          const submitBtn  = document.getElementById('submit-btn');
+          const nameLabel  = document.getElementById('add-exercise-name');
+
+          let activeFilter = 'all';
+
+          function applyFilters() {
+            const q = search.value.toLowerCase();
+            rows.forEach(row => {
+              const matchGroup  = activeFilter === 'all' || row.dataset.group === activeFilter;
+              const matchSearch = !q || row.dataset.search.includes(q);
+              row.style.display = (matchGroup && matchSearch) ? '' : 'none';
+            });
+          }
+
+          filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+              filterBtns.forEach(b => {
+                b.classList.remove('active-filter', 'border-brand-green', 'bg-brand-green/10', 'text-brand-green');
+                b.classList.add('border-surface-border', 'text-gray-400');
+              });
+              btn.classList.add('active-filter', 'border-brand-green', 'bg-brand-green/10', 'text-brand-green');
+              btn.classList.remove('border-surface-border', 'text-gray-400');
+              activeFilter = btn.dataset.filter;
+              applyFilters();
+            });
+          });
+
+          search.addEventListener('input', applyFilters);
+
+          rows.forEach(row => {
+            row.addEventListener('click', () => {
+              rows.forEach(r => r.classList.remove('bg-brand-green/10', 'border-l-2', 'border-brand-green'));
+              row.classList.add('bg-brand-green/10', 'border-l-2', 'border-brand-green');
+              hiddenId.value = row.dataset.id;
+              nameLabel.textContent = row.dataset.name;
+              nameLabel.classList.remove('text-gray-500', 'italic');
+              nameLabel.classList.add('text-white', 'font-medium');
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+              submitBtn.classList.add('hover:opacity-90');
+            });
+          });
+        })();
+      </script>
 
     </div>
 
