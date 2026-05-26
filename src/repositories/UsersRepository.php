@@ -8,7 +8,20 @@ class UsersRepository extends Repository
     public function findByEmail(string $email): ?User
     {
         $query = $this->database->connect()->prepare(
-            'SELECT * FROM users WHERE email = :email'
+            'SELECT id, email, display_name, role, unit_system, is_active, created_at FROM users WHERE email = :email'
+        );
+        $query->bindParam(':email', $email);
+        $query->execute();
+
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $this->mapToUser($row) : null;
+    }
+
+    public function findForAuth(string $email): ?User
+    {
+        $query = $this->database->connect()->prepare(
+            'SELECT id, email, display_name, password_hash, role, unit_system, is_active, created_at FROM users WHERE email = :email'
         );
         $query->bindParam(':email', $email);
         $query->execute();
@@ -34,7 +47,7 @@ class UsersRepository extends Repository
             $row['id'],
             $row['email'],
             $row['display_name'],
-            $row['password_hash'],
+            $row['password_hash'] ?? '',
             $row['role'],
             $row['unit_system'],
             (bool) $row['is_active'],
