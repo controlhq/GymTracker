@@ -14,29 +14,41 @@ class SecurityController extends AppController
 
     public function login()
     {
+        $csrfToken = $this->generateCsrfToken();
+
         if (!$this->isPost()) {
-            return $this->render('login');
+            return $this->render('login', ['csrf_token' => $csrfToken]);
         }
 
-        $email    = $_POST['email']    ?? '';
-        $password = $_POST['password'] ?? '';
+        if (!$this->validateCsrfToken()) {
+            http_response_code(403);
+            return $this->render('login', ['messages' => 'Nieprawidłowe żądanie.', 'csrf_token' => $csrfToken]);
+        }
+
+        $email    = trim($_POST['email']    ?? '');
+        $password = $_POST['password']      ?? '';
 
         if (empty($email) || empty($password)) {
-            return $this->render('login', ['messages' => 'Fill all fields']);
+            http_response_code(400);
+            return $this->render('login', ['messages' => 'Wypełnij wszystkie pola.', 'csrf_token' => $csrfToken]);
         }
 
-        $user = $this->userRepository->findByEmail($email);
-
-        if (!$user) {
-            return $this->render('login', ['messages' => 'User not found']);
+        if (strlen($email) > 254 || strlen($password) > 72) {
+            http_response_code(400);
+            return $this->render('login', ['messages' => 'Nieprawidłowe dane wejściowe.', 'csrf_token' => $csrfToken]);
         }
 
-        if (!$user->isActive()) {
-            return $this->render('login', ['messages' => 'Account is disabled']);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            return $this->render('login', ['messages' => 'Nieprawidłowy format adresu email.', 'csrf_token' => $csrfToken]);
         }
 
-        if (!password_verify($password, $user->getPasswordHash())) {
-            return $this->render('login', ['messages' => 'Wrong password']);
+        $user = $this->userRepository->findForAuth($email);
+
+        if (!$user || !$user->isActive() || !password_verify($password, $user->getPasswordHash())) {
+            error_log("[AUTH_FAIL] email={$email} ip={$_SERVER['REMOTE_ADDR']}");
+            http_response_code(401);
+            return $this->render('login', ['messages' => 'Email lub hasło niepoprawne.', 'csrf_token' => $csrfToken]);
         }
 
         session_regenerate_id(true);
@@ -51,8 +63,15 @@ class SecurityController extends AppController
 
     public function register()
     {
+        $csrfToken = $this->generateCsrfToken();
+
         if (!$this->isPost()) {
-            return $this->render('register');
+            return $this->render('register', ['csrf_token' => $csrfToken]);
+        }
+
+        if (!$this->validateCsrfToken()) {
+            http_response_code(403);
+            return $this->render('register', ['messages' => 'Nieprawidłowe żądanie.', 'csrf_token' => $csrfToken]);
         }
 
         $email       = trim($_POST['email']        ?? '');
@@ -61,16 +80,44 @@ class SecurityController extends AppController
         $displayName = trim($_POST['display_name'] ?? '');
 
         if (empty($email) || empty($password) || empty($displayName)) {
-            return $this->render('register', ['messages' => 'Fill all fields']);
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Wypełnij wszystkie pola.', 'csrf_token' => $csrfToken]);
+        }
+
+        if (strlen($email) > 254) {
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Adres email jest zbyt długi.', 'csrf_token' => $csrfToken]);
+        }
+
+        if (strlen($password) > 72) {
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Hasło jest zbyt długie (max 72 znaki).', 'csrf_token' => $csrfToken]);
+        }
+
+        if (strlen($displayName) > 100) {
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Nazwa wyświetlana jest zbyt długa (max 100 znaków).', 'csrf_token' => $csrfToken]);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Nieprawidłowy format adresu email.', 'csrf_token' => $csrfToken]);
+        }
+
+        if (strlen($password) < 8) {
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Hasło musi mieć co najmniej 8 znaków.', 'csrf_token' => $csrfToken]);
         }
 
         if ($password !== $password2) {
-            return $this->render('register', ['messages' => 'Passwords do not match']);
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Hasła nie są zgodne.', 'csrf_token' => $csrfToken]);
         }
 
         $user = $this->userRepository->findByEmail($email);
         if ($user) {
-            return $this->render('register', ['messages' => 'User exists']);
+            http_response_code(400);
+            return $this->render('register', ['messages' => 'Konto z tym adresem email już istnieje.', 'csrf_token' => $csrfToken]);
         }
 
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
