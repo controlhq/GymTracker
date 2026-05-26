@@ -73,4 +73,14 @@ class SessionsRepository extends Repository
             $query->execute([$sessionId]);
         });
     }
+
+    public function deleteSession(string $userId, string $sessionId): void
+    {
+        $this->withUserContext($userId, function () use ($sessionId) {
+            $query = $this->database->connect()->prepare(
+                'DELETE FROM sessions WHERE id = ?'
+            );
+            $query->execute([$sessionId]);
+        });
+    }
 }
