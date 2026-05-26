@@ -15,6 +15,8 @@
 
         <form method="POST" action="/register">
 
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
+
           <?php if(isset($messages)): ?>
           <p class="messages"><?= htmlspecialchars($messages) ?></p>
           <?php endif; ?>
