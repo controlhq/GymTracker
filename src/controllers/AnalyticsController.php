@@ -90,6 +90,12 @@ class AnalyticsController extends AppController
             return;
         }
 
+        if ($action === 'delete') {
+            $this->sessionsRepository->deleteSession($userId, $sessionId);
+            header("Location: {$url}/analytics");
+            return;
+        }
+
         if ($action === 'add-exercise') {
             $exerciseId   = $_POST['exercise_id']   ?? '';
             $exerciseName = $_POST['exercise_name'] ?? '';

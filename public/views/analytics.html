@@ -3,7 +3,7 @@
   <head>
     <?php include __DIR__ . '/partials/head.html'; ?>
     <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
-    <title>Analytics — GYM TRACKER</title>
+    <title>Analytics - GYM TRACKER</title>
   </head>
   <body class="bg-surface-base text-white min-h-screen font-sans">
 
@@ -145,12 +145,19 @@
                       <?php endif; ?>
                     </td>
                     <td class="px-4 py-3 text-right">
-                      <?php if ($isActive): ?>
-                        <a href="/analytics/session/<?= htmlspecialchars($s['id']) ?>"
-                          class="text-brand-green text-xs hover:underline">
-                          Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
-                      <?php endif; ?>
+                      <div class="flex items-center justify-end gap-3">
+                        <?php if ($isActive): ?>
+                          <a href="/analytics/session/<?= htmlspecialchars($s['id']) ?>"
+                            class="text-brand-green text-xs hover:underline">
+                            Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                          </a>
+                        <?php endif; ?>
+                        <button type="button"
+                          onclick="showDeleteModal('<?= htmlspecialchars($s['id']) ?>', '<?= htmlspecialchars(addslashes($s['started_at'])) ?>')"
+                          class="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors focus-visible:outline-none">
+                          <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -161,6 +168,44 @@
       </section>
 
     </div>
+
+    <div id="delete-modal" class="hidden fixed flex items-center justify-center" style="inset:0;z-index:200;background:rgba(0,0,0,0.6)">
+      <div class="bg-surface-raised border border-surface-border rounded-card p-6 w-80 mx-4">
+        <h3 class="text-white font-bold text-base mb-1">Delete session?</h3>
+        <p class="text-gray-400 text-sm mb-6">
+          Session from <span id="delete-modal-date" class="text-white"></span> will be permanently removed.
+        </p>
+        <div class="flex gap-3 justify-end">
+          <button type="button" onclick="closeDeleteModal()"
+            class="px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white border border-surface-border rounded hover:border-gray-500 transition-colors focus-visible:outline-none">
+            Cancel
+          </button>
+          <form id="delete-modal-form" method="POST" class="inline">
+            <button type="submit"
+              class="px-4 py-2 text-xs font-bold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/30 rounded hover:bg-red-500/20 transition-colors focus-visible:outline-none">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showDeleteModal(sessionId, startedAt) {
+        const d = new Date(startedAt);
+        document.getElementById('delete-modal-date').textContent =
+          d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+          ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('delete-modal-form').action = '/analytics/session/' + sessionId + '/delete';
+        document.getElementById('delete-modal').classList.remove('hidden');
+      }
+      function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+      }
+      document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+      });
+    </script>
 
   </body>
 </html>
