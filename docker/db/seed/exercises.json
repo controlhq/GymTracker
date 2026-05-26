@@ -1,0 +1,307 @@
+[
+  {
+    "name": "Bench Press",
+    "muscle_group_slug": "chest",
+    "exercise_type": "compound",
+    "description": "Classic horizontal barbell press. Lie flat on a bench, lower the bar to mid-chest, press back up. Primary chest builder."
+  },
+  {
+    "name": "Incline Bench Press",
+    "muscle_group_slug": "chest",
+    "exercise_type": "compound",
+    "description": "Barbell or dumbbell press on a 30-45° incline. Emphasises the upper portion of the pectorals."
+  },
+  {
+    "name": "Decline Bench Press",
+    "muscle_group_slug": "chest",
+    "exercise_type": "compound",
+    "description": "Press performed on a downward-angled bench. Targets the lower chest and allows heavier loads than flat pressing."
+  },
+  {
+    "name": "Dumbbell Flye",
+    "muscle_group_slug": "chest",
+    "exercise_type": "isolation",
+    "description": "Lying dumbbell fly with a slight elbow bend. Stretches and contracts the pectorals through a wide arc."
+  },
+  {
+    "name": "Cable Crossover",
+    "muscle_group_slug": "chest",
+    "exercise_type": "isolation",
+    "description": "High-to-low or level cable fly. Provides constant tension across the full range of motion."
+  },
+  {
+    "name": "Push-Up",
+    "muscle_group_slug": "chest",
+    "exercise_type": "compound",
+    "description": "Bodyweight pressing movement. Engages chest, anterior delts, and triceps. Scalable via elevation or resistance bands."
+  },
+  {
+    "name": "Chest Dip",
+    "muscle_group_slug": "chest",
+    "exercise_type": "compound",
+    "description": "Parallel-bar dip with a slight forward lean to maximise pectoral stretch and activation."
+  },
+  {
+    "name": "Pec Deck",
+    "muscle_group_slug": "chest",
+    "exercise_type": "isolation",
+    "description": "Machine fly that isolates the pectorals without requiring stabilisation. Good for mind-muscle connection work."
+  },
+
+  {
+    "name": "Deadlift",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Barbell pull from the floor. Full posterior-chain movement — lats, spinal erectors, glutes, hamstrings. Foundation of strength training."
+  },
+  {
+    "name": "Pull-Up",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Overhand-grip bodyweight vertical pull. Targets lats, rhomboids, and biceps. Add weight via belt for progression."
+  },
+  {
+    "name": "Barbell Row",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Bent-over barbell row with overhand or underhand grip. Builds thickness in the mid and upper back."
+  },
+  {
+    "name": "Lat Pulldown",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Cable pulldown to the upper chest. Develops lat width. Use a wide or neutral grip for different emphases."
+  },
+  {
+    "name": "Seated Cable Row",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Horizontal cable row from a seated position. Targets the mid-back, rhomboids, and rear delts."
+  },
+  {
+    "name": "Single-Arm Dumbbell Row",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Unilateral row braced against a bench. Allows a longer range of motion and corrects side-to-side imbalances."
+  },
+  {
+    "name": "Face Pull",
+    "muscle_group_slug": "back",
+    "exercise_type": "isolation",
+    "description": "Cable pull to the face with rope attachment. Primarily targets rear delts and external rotators. Shoulder health essential."
+  },
+  {
+    "name": "T-Bar Row",
+    "muscle_group_slug": "back",
+    "exercise_type": "compound",
+    "description": "Landmine or dedicated T-bar row. Allows heavy loading with a neutral spine. Great for back thickness."
+  },
+
+  {
+    "name": "Squat",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Barbell back squat — the king of lower-body exercises. Trains quads, glutes, and entire posterior chain under heavy load."
+  },
+  {
+    "name": "Romanian Deadlift",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Hip-hinge movement keeping the bar close to the legs. Primary hamstring and glute stretch-under-load exercise."
+  },
+  {
+    "name": "Leg Press",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Machine-based quad-dominant press. Allows heavy loading without spinal compression. Foot position shifts emphasis."
+  },
+  {
+    "name": "Leg Curl",
+    "muscle_group_slug": "legs",
+    "exercise_type": "isolation",
+    "description": "Lying or seated machine curl that isolates the hamstrings. Key accessory for knee health and hamstring development."
+  },
+  {
+    "name": "Leg Extension",
+    "muscle_group_slug": "legs",
+    "exercise_type": "isolation",
+    "description": "Quad isolation via machine knee extension. Useful for VMO development and rehabilitation work."
+  },
+  {
+    "name": "Standing Calf Raise",
+    "muscle_group_slug": "legs",
+    "exercise_type": "isolation",
+    "description": "Plantarflexion against load. Targets the gastrocnemius. Full stretch at the bottom is essential for hypertrophy."
+  },
+  {
+    "name": "Lunge",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Unilateral step movement targeting quads and glutes. Walking, reverse, or static variations each have different demands."
+  },
+  {
+    "name": "Bulgarian Split Squat",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Rear-foot-elevated split squat. High quad and glute demand. Exposes and corrects limb asymmetries."
+  },
+  {
+    "name": "Hack Squat",
+    "muscle_group_slug": "legs",
+    "exercise_type": "compound",
+    "description": "Machine or barbell squat variation with an upright torso. Shifts load further onto the quads."
+  },
+
+  {
+    "name": "Overhead Press",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "compound",
+    "description": "Standing barbell press overhead. Primary shoulder mass builder. Also loads the upper chest and triceps."
+  },
+  {
+    "name": "Dumbbell Shoulder Press",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "compound",
+    "description": "Seated or standing dumbbell press. Allows greater range of motion than the barbell version and corrects imbalances."
+  },
+  {
+    "name": "Lateral Raise",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "isolation",
+    "description": "Dumbbell or cable raise to shoulder height. Targets the medial deltoid — essential for shoulder width."
+  },
+  {
+    "name": "Front Raise",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "isolation",
+    "description": "Dumbbell raise to the front. Targets the anterior deltoid. Often deprioritised since pressing movements cover front delts well."
+  },
+  {
+    "name": "Rear Delt Fly",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "isolation",
+    "description": "Bent-over or machine fly targeting the posterior deltoid. Critical for shoulder balance and posture."
+  },
+  {
+    "name": "Arnold Press",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "compound",
+    "description": "Dumbbell press with a rotational component through the full range. Hits anterior and medial delts through a longer arc."
+  },
+  {
+    "name": "Upright Row",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "compound",
+    "description": "Barbell or cable pull to the chin with elbows flared. Trains medial delts and upper traps together."
+  },
+  {
+    "name": "Cable Lateral Raise",
+    "muscle_group_slug": "shoulders",
+    "exercise_type": "isolation",
+    "description": "Single-arm lateral raise using a low cable pulley. Maintains tension at the bottom of the movement unlike dumbbells."
+  },
+
+  {
+    "name": "Barbell Curl",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Standing supinated curl with a barbell. Primary biceps mass exercise. Allows the heaviest loading of any curl variation."
+  },
+  {
+    "name": "Hammer Curl",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Neutral-grip dumbbell curl. Targets the brachialis and brachioradialis alongside the biceps. Adds arm thickness."
+  },
+  {
+    "name": "Incline Dumbbell Curl",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Curl performed on an incline bench with arms hanging behind the torso. Maximises the long head stretch of the biceps."
+  },
+  {
+    "name": "Preacher Curl",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Curl with the upper arm braced on a preacher pad. Eliminates cheat and emphasises the peak contraction."
+  },
+  {
+    "name": "Tricep Pushdown",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Cable pushdown with rope or bar attachment. Isolates the triceps through elbow extension. High rep finishing move."
+  },
+  {
+    "name": "Skull Crusher",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Lying EZ-bar or dumbbell extension lowering toward the forehead. Effective for tricep mass — especially the long head."
+  },
+  {
+    "name": "Close-Grip Bench Press",
+    "muscle_group_slug": "arms",
+    "exercise_type": "compound",
+    "description": "Bench press with a shoulder-width grip. Allows heavy tricep loading. Overlaps with chest but tricep emphasis is primary."
+  },
+  {
+    "name": "Overhead Tricep Extension",
+    "muscle_group_slug": "arms",
+    "exercise_type": "isolation",
+    "description": "Dumbbell or cable extension with arms overhead. Stretches the long head of the triceps — best for overall tricep mass."
+  },
+  {
+    "name": "Tricep Dip",
+    "muscle_group_slug": "arms",
+    "exercise_type": "compound",
+    "description": "Parallel-bar dip performed upright. Heavy bodyweight or weighted tricep exercise with carryover to pressing strength."
+  },
+
+  {
+    "name": "Plank",
+    "muscle_group_slug": "core",
+    "exercise_type": "mobility",
+    "description": "Isometric hold with a straight body from head to heels. Builds anti-extension core stability. Foundation movement."
+  },
+  {
+    "name": "Ab Wheel Rollout",
+    "muscle_group_slug": "core",
+    "exercise_type": "compound",
+    "description": "Rolling the ab wheel forward from a kneeling position. High demand on the rectus abdominis and anti-extension capability."
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "muscle_group_slug": "core",
+    "exercise_type": "isolation",
+    "description": "Leg raise from a dead hang. Targets the lower abs and hip flexors. Keep the pelvis posteriorly tilted at the top."
+  },
+  {
+    "name": "Cable Crunch",
+    "muscle_group_slug": "core",
+    "exercise_type": "isolation",
+    "description": "Kneeling crunch using a cable overhead. Allows progressive overload on the rectus abdominis unlike bodyweight crunches."
+  },
+  {
+    "name": "Russian Twist",
+    "muscle_group_slug": "core",
+    "exercise_type": "isolation",
+    "description": "Seated rotation holding a weight. Trains the obliques. Add a plate or medicine ball for progressive resistance."
+  },
+  {
+    "name": "Crunch",
+    "muscle_group_slug": "core",
+    "exercise_type": "isolation",
+    "description": "Basic spinal flexion from the floor. Targets upper rectus abdominis. High reps or add a plate for resistance."
+  },
+  {
+    "name": "Dead Bug",
+    "muscle_group_slug": "core",
+    "exercise_type": "mobility",
+    "description": "Supine alternating arm-leg extension. Trains core stability and anti-extension without spinal loading. Rehab-friendly."
+  },
+  {
+    "name": "Pallof Press",
+    "muscle_group_slug": "core",
+    "exercise_type": "isolation",
+    "description": "Anti-rotation cable press. Resists rotational force, training the obliques isometrically. Underrated core stability exercise."
+  }
+]

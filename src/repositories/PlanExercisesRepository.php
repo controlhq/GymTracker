@@ -10,11 +10,17 @@ class PlanExercisesRepository extends Repository
             $query = $this->database->connect()->prepare(
                 'SELECT pe.id, pe.exercise_id, pe.position, pe.notes,
                         e.name AS exercise_name, e.exercise_type,
-                        mg.name AS muscle_group
+                        mg.name AS muscle_group,
+                        COUNT(ps.id)             AS sets,
+                        MAX(ps.target_reps)      AS reps,
+                        MAX(ps.target_rest_sec)  AS rest_sec
                  FROM plan_exercises pe
-                 JOIN exercises e ON e.id = pe.exercise_id
+                 JOIN exercises e  ON e.id  = pe.exercise_id
                  JOIN muscle_groups mg ON mg.id = e.muscle_group_id
+                 LEFT JOIN plan_sets ps ON ps.plan_exercise_id = pe.id
                  WHERE pe.workout_plan_id = ?
+                 GROUP BY pe.id, pe.exercise_id, pe.position, pe.notes,
+                          e.name, e.exercise_type, mg.name
                  ORDER BY pe.position'
             );
             $query->execute([$planId]);
@@ -22,9 +28,9 @@ class PlanExercisesRepository extends Repository
         });
     }
 
-    public function addExerciseToPlan(string $userId, string $planId, string $exerciseId): string
+    public function addExerciseToPlan(string $userId, string $planId, string $exerciseId, ?int $sets = null, ?int $reps = null, ?int $restSec = null): string
     {
-        return $this->withUserContext($userId, function () use ($planId, $exerciseId) {
+        return $this->withUserContext($userId, function () use ($planId, $exerciseId, $sets, $reps, $restSec) {
             $posQuery = $this->database->connect()->prepare(
                 'SELECT COALESCE(MAX(position), 0) + 1 FROM plan_exercises WHERE workout_plan_id = ?'
             );
@@ -37,7 +43,19 @@ class PlanExercisesRepository extends Repository
                  RETURNING id'
             );
             $query->execute([$planId, $exerciseId, $position]);
-            return $query->fetchColumn();
+            $planExerciseId = $query->fetchColumn();
+
+            if ($sets && $sets > 0) {
+                $setStmt = $this->database->connect()->prepare(
+                    'INSERT INTO plan_sets (plan_exercise_id, set_number, target_reps, target_rest_sec)
+                     VALUES (?, ?, ?, ?)'
+                );
+                for ($i = 1; $i <= $sets; $i++) {
+                    $setStmt->execute([$planExerciseId, $i, $reps, $restSec]);
+                }
+            }
+
+            return $planExerciseId;
         });
     }
 

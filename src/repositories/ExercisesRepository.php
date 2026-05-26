@@ -8,7 +8,7 @@ class ExercisesRepository extends Repository
     {
         $query = $this->database->connect()->prepare(
             'SELECT e.id, e.name, e.exercise_type, e.description,
-                    mg.name AS muscle_group
+                    mg.name AS muscle_group, mg.slug AS muscle_group_slug
              FROM exercises e
              JOIN muscle_groups mg ON mg.id = e.muscle_group_id
              WHERE e.is_active = TRUE
