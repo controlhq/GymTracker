@@ -6,13 +6,14 @@ class WorkoutPlansRepository extends Repository
 {
     public function getPlansForUser(string $userId): array
     {
-        return $this->withUserContext($userId, function () {
+        return $this->withUserContext($userId, function () use ($userId) {
             $query = $this->database->connect()->prepare(
                 'SELECT id, name, description, status, intensity, duration_min, created_at
                  FROM workout_plans
+                 WHERE user_id = ?
                  ORDER BY created_at DESC'
             );
-            $query->execute();
+            $query->execute([$userId]);
             return $query->fetchAll(PDO::FETCH_ASSOC);
         });
     }
@@ -32,13 +33,13 @@ class WorkoutPlansRepository extends Repository
 
     public function getPlanById(string $userId, string $planId): ?array
     {
-        return $this->withUserContext($userId, function () use ($planId) {
+        return $this->withUserContext($userId, function () use ($userId, $planId) {
             $query = $this->database->connect()->prepare(
                 'SELECT id, name, description, status, intensity, duration_min, created_at
                  FROM workout_plans
-                 WHERE id = ?'
+                 WHERE id = ? AND user_id = ?'
             );
-            $query->execute([$planId]);
+            $query->execute([$planId, $userId]);
             $row = $query->fetch(PDO::FETCH_ASSOC);
             return $row ?: null;
         });
@@ -46,21 +47,33 @@ class WorkoutPlansRepository extends Repository
 
     public function deletePlan(string $userId, string $planId): void
     {
-        $this->withUserContext($userId, function () use ($planId) {
+        $this->withUserContext($userId, function () use ($userId, $planId) {
             $query = $this->database->connect()->prepare(
-                'DELETE FROM workout_plans WHERE id = ?'
+                'DELETE FROM workout_plans WHERE id = ? AND user_id = ?'
             );
-            $query->execute([$planId]);
+            $query->execute([$planId, $userId]);
         });
     }
 
     public function updatePlanStatus(string $userId, string $planId, string $status): void
     {
-        $this->withUserContext($userId, function () use ($planId, $status) {
-            $query = $this->database->connect()->prepare(
-                'UPDATE workout_plans SET status = ? WHERE id = ?'
+        $this->withUserContext($userId, function () use ($userId, $planId, $status) {
+            $pdo = $this->database->connect();
+
+            // Only one plan may be 'active' per user (DB enforces this with a unique
+            // index); demote the current active plan first so switching never fails.
+            if ($status === 'active') {
+                $demote = $pdo->prepare(
+                    "UPDATE workout_plans SET status = 'routine'
+                     WHERE user_id = ? AND status = 'active' AND id <> ?"
+                );
+                $demote->execute([$userId, $planId]);
+            }
+
+            $query = $pdo->prepare(
+                'UPDATE workout_plans SET status = ? WHERE id = ? AND user_id = ?'
             );
-            $query->execute([$status, $planId]);
+            $query->execute([$status, $planId, $userId]);
         });
     }
 }

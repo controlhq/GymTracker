@@ -41,6 +41,14 @@ class UsersRepository extends Repository
         return $query->fetchColumn();
     }
 
+    public function touchLastLogin(string $userId): void
+    {
+        $query = $this->database->connect()->prepare(
+            'UPDATE users SET last_login_at = NOW() WHERE id = ?'
+        );
+        $query->execute([$userId]);
+    }
+
     private function mapToUser(array $row): User
     {
         return new User(
@@ -50,7 +58,7 @@ class UsersRepository extends Repository
             $row['password_hash'] ?? '',
             $row['role'],
             $row['unit_system'],
-            (bool) $row['is_active'],
+            in_array($row['is_active'], [true, 't', 'true', '1', 1], true),
             $row['created_at']
         );
     }

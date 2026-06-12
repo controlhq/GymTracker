@@ -21,6 +21,16 @@ class AppController {
         }
     }
 
+    protected function requireAdmin(): void
+    {
+        $this->requireLogin();
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            http_response_code(404);
+            include 'public/views/404.html';
+            exit();
+        }
+    }
+
     protected function generateCsrfToken(): string
     {
         if (empty($_SESSION['csrf_token'])) {

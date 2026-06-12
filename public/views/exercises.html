@@ -66,8 +66,14 @@
                 $typeCls  = $typeMap[strtolower($ex['exercise_type'])] ?? 'bg-gray-700/20 text-gray-400 border-gray-600/20';
                 $typeLabel = ucfirst($ex['exercise_type']);
               ?>
-                <div class="exercise-card bg-surface-raised border border-surface-border rounded-card p-4 flex flex-col gap-2"
-                  data-name="<?= htmlspecialchars(strtolower($ex['name'])) ?>">
+                <div class="exercise-card bg-surface-raised border border-surface-border rounded-card p-4 flex flex-col gap-2 cursor-pointer hover:border-brand-green/50 focus:border-brand-green/50 focus:outline-none transition-colors"
+                  role="button" tabindex="0"
+                  data-name="<?= htmlspecialchars(strtolower($ex['name'])) ?>"
+                  data-fullname="<?= htmlspecialchars($ex['name']) ?>"
+                  data-mg="<?= htmlspecialchars($muscleGroup) ?>"
+                  data-type-label="<?= htmlspecialchars($typeLabel) ?>"
+                  data-type-cls="<?= $typeCls ?>"
+                  data-desc="<?= htmlspecialchars($ex['description'] ?? '') ?>">
 
                   <div class="flex items-start justify-between gap-2">
                     <h3 class="text-white text-sm font-bold leading-snug"><?= htmlspecialchars($ex['name']) ?></h3>
@@ -98,6 +104,73 @@
       <?php endif; ?>
 
     </div>
+
+    <!-- Exercise detail modal -->
+    <div id="ex-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div id="ex-modal-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-surface-raised border border-surface-border rounded-card max-w-lg w-full p-6 shadow-2xl">
+        <button id="ex-modal-close" type="button" aria-label="Close"
+          class="absolute top-4 right-4 text-gray-500 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span id="ex-modal-group" class="text-brand-green text-xs font-bold uppercase tracking-widest"></span>
+        <div class="flex items-start justify-between gap-3 mt-1 mb-4">
+          <h2 id="ex-modal-name" class="text-2xl font-bold text-white tracking-wide leading-tight"></h2>
+          <span id="ex-modal-type" class="shrink-0 mt-1"></span>
+        </div>
+        <p id="ex-modal-desc" class="text-gray-300 text-sm leading-relaxed"></p>
+      </div>
+    </div>
+
+    <script>
+    (function () {
+      var modal = document.getElementById('ex-modal');
+      if (!modal) return;
+
+      var backdrop = document.getElementById('ex-modal-backdrop');
+      var closeBtn = document.getElementById('ex-modal-close');
+      var elGroup  = document.getElementById('ex-modal-group');
+      var elName   = document.getElementById('ex-modal-name');
+      var elType   = document.getElementById('ex-modal-type');
+      var elDesc   = document.getElementById('ex-modal-desc');
+      var typeBase = 'shrink-0 mt-1 border px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-medium ';
+
+      function openModal(card) {
+        elGroup.textContent = card.dataset.mg || '';
+        elName.textContent  = card.dataset.fullname || '';
+        elType.textContent  = card.dataset.typeLabel || '';
+        elType.className     = typeBase + (card.dataset.typeCls || '');
+        var desc = card.dataset.desc || '';
+        elDesc.textContent  = desc || 'No description available.';
+        elDesc.classList.toggle('italic', !desc);
+        elDesc.classList.toggle('text-gray-500', !desc);
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      document.getElementById('exercise-groups').addEventListener('click', function (e) {
+        var card = e.target.closest('.exercise-card');
+        if (card) openModal(card);
+      });
+
+      document.getElementById('exercise-groups').addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('.exercise-card');
+        if (card) { e.preventDefault(); openModal(card); }
+      });
+
+      backdrop.addEventListener('click', closeModal);
+      closeBtn.addEventListener('click', closeModal);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+      });
+    }());
+    </script>
 
     <script>
     (function () {

@@ -90,6 +90,16 @@ class WorkoutsController extends AppController
             return;
         }
 
+        if ($action === 'status') {
+            $status  = $_POST['status'] ?? '';
+            $allowed = ['draft', 'routine', 'active', 'archived'];
+            if (in_array($status, $allowed, true)) {
+                $this->plansRepository->updatePlanStatus($userId, $planId, $status);
+            }
+            header("Location: {$url}/workouts/{$planId}");
+            return;
+        }
+
         if ($action === 'add-exercise') {
             $exerciseId = $_POST['exercise_id'] ?? '';
             $sets       = isset($_POST['sets'])     && $_POST['sets']     !== '' ? (int)$_POST['sets']     : null;

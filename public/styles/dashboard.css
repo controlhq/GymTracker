@@ -89,3 +89,109 @@
   font-size: 0.75rem;
   cursor: pointer;
 }
+
+/* ── Start session page ── */
+
+/* Odstęp między wolną sesją a listą planów (Tailwind mb-20 nie jest zbudowany) */
+.session-free-block {
+  margin-bottom: 3rem;
+}
+
+/* Przycisk wolnej sesji ma stały rozmiar, nie rozciąga się na całą szerokość */
+.free-session-btn {
+  width: 420px;
+  max-width: 100%;
+}
+
+/* Karty planów mają stały rozmiar i nie rozciągają się na całą szerokość */
+.plan-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.plan-grid > .plan-card {
+  width: 260px;
+  max-width: 100%;
+}
+
+/* ── Mobile bottom navigation ── */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .dash-nav {
+    padding: 0 1rem;
+  }
+
+  .dash-nav-logo {
+    margin-right: 0;
+    font-size: 1.15rem;
+  }
+
+  /* Linki z górnego paska przenoszą się na dół */
+  .dash-nav-links {
+    display: none;
+  }
+
+  /* Admin Panel zwija się do samej ikony, jak pozostałe przyciski górnego paska */
+  .admin-label {
+    display: none;
+  }
+
+  .admin-link {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  /* Treść nie chowa się pod stałym dolnym paskiem */
+  body:has(.mobile-bottom-nav) {
+    padding-bottom: 76px;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    padding: 0 0.5rem;
+    background-color: #0f0f0f;
+    border-top: 1px solid #1f1f1f;
+    z-index: 100;
+  }
+
+  .mobile-bottom-nav a {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777777;
+    font-size: 1.2rem;
+    text-decoration: none;
+  }
+
+  .mobile-nav-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .mobile-bottom-nav a.active {
+    color: #0a0a0a;
+  }
+
+  .mobile-bottom-nav a.active .mobile-nav-icon {
+    background-color: #39ff14;
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.6);
+  }
+}

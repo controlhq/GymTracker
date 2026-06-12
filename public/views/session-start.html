@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <?php include __DIR__ . '/partials/head.html'; ?>
+    <link rel="stylesheet" type="text/css" href="/public/styles/dashboard.css" />
+    <title>Start Session - GYM TRACKER</title>
+  </head>
+  <body class="bg-surface-base text-white min-h-screen font-sans">
+
+    <?php $currentPage = 'dashboard'; include __DIR__ . '/partials/nav.html'; ?>
+
+    <div class="max-w-[1100px] mx-auto px-6 py-8">
+
+      <!-- Page header -->
+      <div class="mb-8">
+        <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Live Tracking</span>
+        <h1 class="text-3xl font-bold text-white mt-1 tracking-wide">Start a Session</h1>
+        <p class="text-gray-400 text-sm mt-1">Pick one of your plans or start a free session and add exercises as you go.</p>
+      </div>
+
+      <!-- Free session -->
+      <form method="POST" action="/dashboard/session/start" class="session-free-block">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>" />
+        <input type="hidden" name="plan_id" value="" />
+        <button type="submit"
+          class="free-session-btn flex items-center justify-between gap-4 bg-surface-raised border border-surface-border rounded-card p-5 hover:border-brand-green/40 transition-colors focus-visible:outline-none">
+          <div class="flex items-center gap-4 text-left">
+            <span class="w-11 h-11 rounded-full bg-surface-card border border-surface-border flex items-center justify-center text-gray-400">
+              <i class="fa-solid fa-bolt"></i>
+            </span>
+            <div>
+              <p class="text-white font-bold">Free session</p>
+              <p class="text-gray-500 text-xs mt-0.5">Start empty and add exercises on the fly.</p>
+            </div>
+          </div>
+          <span class="text-brand-green text-xs font-bold uppercase tracking-widest whitespace-nowrap">
+            Start <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </span>
+        </button>
+      </form>
+
+      <!-- From a plan -->
+      <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">From a plan</h2>
+
+      <?php if (empty($plans)): ?>
+        <div class="flex flex-col items-center justify-center py-16 gap-4 text-center bg-surface-raised border border-surface-border rounded-card">
+          <div class="w-14 h-14 rounded-card bg-surface-card border border-surface-border flex items-center justify-center">
+            <i class="fa-solid fa-dumbbell text-xl text-gray-600"></i>
+          </div>
+          <p class="text-white font-bold">No workout plans yet</p>
+          <p class="text-gray-500 text-sm max-w-xs">Create a plan to start sessions from a predefined list of exercises.</p>
+          <a href="/workouts/create"
+            class="mt-1 inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded hover:opacity-90">
+            <i class="fa-solid fa-plus"></i> Create Plan
+          </a>
+        </div>
+      <?php else: ?>
+        <div class="plan-grid">
+          <?php foreach ($plans as $plan):
+            $statusMap = [
+              'active'   => 'bg-brand-green/10 text-brand-green border-brand-green/30',
+              'routine'  => 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+              'draft'    => 'bg-gray-700/20 text-gray-400 border-gray-600/30',
+              'archived' => 'bg-red-900/20 text-red-400 border-red-900/30',
+            ];
+            $statusCls = $statusMap[$plan['status']] ?? $statusMap['draft'];
+            $exercises = $plan['exercises'] ?? [];
+          ?>
+            <div class="plan-card flex flex-col bg-surface-raised border border-surface-border rounded-card p-4 hover:border-brand-green/40 transition-colors">
+
+              <div class="flex items-center mb-3">
+                <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                  <?= htmlspecialchars($plan['status']) ?>
+                </span>
+                <span class="ml-auto text-gray-600 text-xs">
+                  <?= count($exercises) ?> exercise<?= count($exercises) !== 1 ? 's' : '' ?>
+                </span>
+              </div>
+
+              <h3 class="text-white font-bold text-base leading-tight"><?= htmlspecialchars($plan['name']) ?></h3>
+
+              <?php if (empty($exercises)): ?>
+                <p class="text-gray-600 text-xs mt-3 italic">No exercises in this plan yet.</p>
+              <?php else: ?>
+                <ol class="mt-3 flex flex-col gap-1.5">
+                  <?php foreach ($exercises as $i => $ex): ?>
+                    <li class="flex items-baseline gap-2 text-sm">
+                      <span class="text-gray-600 text-xs w-4 shrink-0"><?= $i + 1 ?>.</span>
+                      <span class="text-gray-300"><?= htmlspecialchars($ex['exercise_name']) ?></span>
+                      <?php if (!empty($ex['muscle_group'])): ?>
+                        <span class="text-gray-600 text-xs">· <?= htmlspecialchars($ex['muscle_group']) ?></span>
+                      <?php endif; ?>
+                    </li>
+                  <?php endforeach; ?>
+                </ol>
+              <?php endif; ?>
+
+              <form method="POST" action="/dashboard/session/start" class="mt-5 pt-4 border-t border-surface-border">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>" />
+                <input type="hidden" name="plan_id" value="<?= htmlspecialchars($plan['id']) ?>" />
+                <button type="submit"
+                  class="w-full inline-flex items-center justify-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-4 py-2.5 rounded hover:opacity-90 focus-visible:outline-none">
+                  <i class="fa-solid fa-play text-[10px]"></i> Start this plan
+                </button>
+              </form>
+
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+    </div>
+
+  </body>
+</html>

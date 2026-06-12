@@ -7,6 +7,12 @@
     <li><a href="/analytics" <?= ($currentPage ?? '') === 'analytics' ? 'class="active"' : '' ?>>ANALYTICS</a></li>
   </ul>
   <div class="dash-nav-right">
+    <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
+      <a href="/admin/stats" title="Admin Panel"
+        class="admin-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border <?= ($currentPage ?? '') === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/40' : 'bg-surface-card text-red-400 border-surface-border hover:text-red-300 hover:border-red-400/40' ?>">
+        <i class="fa-solid fa-gauge-high text-[11px]"></i> <span class="admin-label">Admin Panel</span>
+      </a>
+    <?php endif; ?>
     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-surface-card border border-surface-border text-gray-400">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
         <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd" />
@@ -21,4 +27,19 @@
       </span>
     </a>
   </div>
+</nav>
+
+<nav class="mobile-bottom-nav">
+  <a href="/dashboard" <?= ($currentPage ?? '') === 'dashboard' ? 'class="active"' : '' ?>>
+    <span class="mobile-nav-icon"><i class="fa-solid fa-table-cells-large"></i></span>
+  </a>
+  <a href="/workouts" <?= ($currentPage ?? '') === 'workouts' ? 'class="active"' : '' ?>>
+    <span class="mobile-nav-icon"><i class="fa-solid fa-dumbbell"></i></span>
+  </a>
+  <a href="/exercises" <?= ($currentPage ?? '') === 'exercises' ? 'class="active"' : '' ?>>
+    <span class="mobile-nav-icon"><i class="fa-solid fa-list-ul"></i></span>
+  </a>
+  <a href="/analytics" <?= ($currentPage ?? '') === 'analytics' ? 'class="active"' : '' ?>>
+    <span class="mobile-nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+  </a>
 </nav>

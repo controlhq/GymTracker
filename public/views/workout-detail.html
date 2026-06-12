@@ -34,9 +34,16 @@
             ];
             $statusCls = $statusMap[$plan['status']] ?? $statusMap['draft'];
           ?>
-          <span class="border <?= $statusCls ?> px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
-            <?= htmlspecialchars($plan['status']) ?>
-          </span>
+          <form method="POST" action="/workouts/<?= htmlspecialchars($plan['id']) ?>/status" class="inline-flex">
+            <select name="status" onchange="this.form.submit()" title="Change plan status"
+              class="border <?= $statusCls ?> px-2 py-0.5 pr-5 rounded text-[10px] font-bold uppercase tracking-widest bg-surface-card focus:outline-none cursor-pointer appearance-none">
+              <?php foreach (['draft', 'routine', 'active', 'archived'] as $st): ?>
+                <option value="<?= $st ?>" class="bg-surface-card text-white normal-case" <?= $plan['status'] === $st ? 'selected' : '' ?>>
+                  <?= $st ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </form>
           <?php if ($plan['intensity']): ?>
             <span class="flex gap-0.5 items-center">
               <?php for ($i = 1; $i <= 5; $i++): ?>

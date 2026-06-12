@@ -55,7 +55,10 @@ class SecurityController extends AppController
         $_SESSION['user_id']           = $user->getId();
         $_SESSION['user_email']        = $user->getEmail();
         $_SESSION['user_display_name'] = $user->getDisplayName();
+        $_SESSION['user_role']         = $user->getRole();
         $_SESSION['is_logged_in']      = true;
+
+        $this->userRepository->touchLastLogin($user->getId());
 
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/dashboard");

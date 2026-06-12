@@ -30,22 +30,24 @@ class PlanExercisesRepository extends Repository
 
     public function addExerciseToPlan(string $userId, string $planId, string $exerciseId, ?int $sets = null, ?int $reps = null, ?int $restSec = null): string
     {
-        return $this->withUserContext($userId, function () use ($planId, $exerciseId, $sets, $reps, $restSec) {
+        return $this->withUserContext($userId, function () use ($userId, $planId, $exerciseId, $sets, $reps, $restSec) {
             $posQuery = $this->database->connect()->prepare(
                 'SELECT COALESCE(MAX(position), 0) + 1 FROM plan_exercises WHERE workout_plan_id = ?'
             );
             $posQuery->execute([$planId]);
             $position = (int) $posQuery->fetchColumn();
 
+            // Insert only if the plan belongs to the caller — never touch a foreign plan.
             $query = $this->database->connect()->prepare(
                 'INSERT INTO plan_exercises (workout_plan_id, exercise_id, position)
-                 VALUES (?, ?, ?)
+                 SELECT ?, ?, ?
+                 WHERE EXISTS (SELECT 1 FROM workout_plans WHERE id = ? AND user_id = ?)
                  RETURNING id'
             );
-            $query->execute([$planId, $exerciseId, $position]);
+            $query->execute([$planId, $exerciseId, $position, $planId, $userId]);
             $planExerciseId = $query->fetchColumn();
 
-            if ($sets && $sets > 0) {
+            if ($planExerciseId && $sets && $sets > 0) {
                 $setStmt = $this->database->connect()->prepare(
                     'INSERT INTO plan_sets (plan_exercise_id, set_number, target_reps, target_rest_sec)
                      VALUES (?, ?, ?, ?)'
@@ -61,11 +63,15 @@ class PlanExercisesRepository extends Repository
 
     public function removeExerciseFromPlan(string $userId, string $planExerciseId): void
     {
-        $this->withUserContext($userId, function () use ($planExerciseId) {
+        $this->withUserContext($userId, function () use ($userId, $planExerciseId) {
             $query = $this->database->connect()->prepare(
-                'DELETE FROM plan_exercises WHERE id = ?'
+                'DELETE FROM plan_exercises pe
+                 USING workout_plans wp
+                 WHERE pe.id = ?
+                   AND pe.workout_plan_id = wp.id
+                   AND wp.user_id = ?'
             );
-            $query->execute([$planExerciseId]);
+            $query->execute([$planExerciseId, $userId]);
         });
     }
 }

@@ -19,6 +19,22 @@
       }
       $totalHours = floor($totalMins / 60);
       $remMins    = $totalMins % 60;
+
+      // Chart scaling references.
+      $maxFreq = 0;
+      foreach ($weeklyFreq as $w) { $maxFreq = max($maxFreq, (int)$w['session_count']); }
+
+      $maxVol = 0;
+      foreach ($muscleVolume as $m) { $maxVol = max($maxVol, (float)$m['volume']); }
+
+      $mgColors = [
+        'chest'     => 'bg-brand-green',
+        'back'      => 'bg-blue-400',
+        'legs'      => 'bg-purple-400',
+        'shoulders' => 'bg-amber-400',
+        'arms'      => 'bg-rose-400',
+        'core'      => 'bg-cyan-400',
+      ];
     ?>
 
     <div class="max-w-[1000px] mx-auto px-6 py-8">
@@ -28,13 +44,13 @@
         <div>
           <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Training</span>
           <h1 class="text-3xl font-bold text-white mt-1 tracking-wide">Analytics</h1>
-          <p class="text-gray-400 text-sm mt-1"><?= count($sessions) ?> session<?= count($sessions) !== 1 ? 's' : '' ?> recorded</p>
+          <p class="text-gray-400 text-sm mt-1"><?= count($completed) ?> completed session<?= count($completed) !== 1 ? 's' : '' ?></p>
         </div>
 
       </div>
 
       <!-- Stats row -->
-      <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         <div class="bg-surface-raised border border-surface-border rounded-card p-4">
           <p class="text-gray-500 text-xs uppercase tracking-widest mb-1">Total Sessions</p>
           <p class="text-2xl font-bold text-white"><?= count($sessions) ?></p>
@@ -55,48 +71,99 @@
             <?php endif; ?>
           </p>
         </div>
+        <div class="bg-surface-raised border border-surface-border rounded-card p-4">
+          <p class="text-gray-500 text-xs uppercase tracking-widest mb-1">Total Volume</p>
+          <p class="text-2xl font-bold text-white">
+            <?php if ((float)$lifetime['total_volume'] <= 0): ?>
+              <span class="text-gray-600">—</span>
+            <?php else: ?>
+              <?= number_format((float)$lifetime['total_volume'], 0, '.', ' ') ?><span class="text-sm text-gray-500 font-normal"> kg</span>
+            <?php endif; ?>
+          </p>
+        </div>
       </div>
 
-      <!-- Active session banner -->
-      <?php if ($activeSession): ?>
-        <?php
-          $bannerStart = new DateTime($activeSession['started_at']);
-          $elapsedMins = (int)((time() - $bannerStart->getTimestamp()) / 60);
-        ?>
-        <div class="bg-surface-raised border-l-4 border-brand-green rounded-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <span class="text-brand-green text-xs font-bold uppercase tracking-widest">Live</span>
-            <p class="text-white font-bold mt-0.5">Session in progress</p>
-            <p class="text-gray-400 text-xs mt-1">
-              Started <?= $bannerStart->format('H:i') ?> &bull; <?= $elapsedMins ?> min elapsed
-            </p>
+      <!-- Analytics (aggregated across previous sessions) -->
+      <?php if (count($completed) > 0): ?>
+        <section class="mb-12">
+          <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Analytics</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Training frequency -->
+            <div class="bg-surface-raised border border-surface-border rounded-card p-5">
+              <div class="flex items-baseline justify-between mb-4">
+                <p class="text-gray-300 text-sm font-semibold">Training Frequency</p>
+                <p class="text-gray-600 text-[10px] uppercase tracking-widest">Last 12 weeks</p>
+              </div>
+
+              <div class="flex items-end gap-1.5 h-40">
+                <?php foreach ($weeklyFreq as $w):
+                  $count = (int) $w['session_count'];
+                  $h     = $maxFreq > 0 ? max(3, (int) round($count / $maxFreq * 100)) : 3;
+                  $barCls = $count > 0 ? 'bg-brand-green/70 hover:bg-brand-green' : 'bg-surface-border';
+                ?>
+                  <div class="flex-1 h-full flex flex-col justify-end items-center"
+                    title="Week of <?= htmlspecialchars((new DateTime($w['week_start']))->format('M j')) ?> — <?= $count ?> session<?= $count !== 1 ? 's' : '' ?>">
+                    <span class="text-[9px] text-gray-500 mb-1 h-3"><?= $count > 0 ? $count : '' ?></span>
+                    <div class="w-full <?= $barCls ?> rounded-t transition-colors" style="height:<?= $h ?>%"></div>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+
+              <div class="flex justify-between mt-2 text-[10px] text-gray-600">
+                <span><?= htmlspecialchars((new DateTime($weeklyFreq[0]['week_start']))->format('M j')) ?></span>
+                <span>This week</span>
+              </div>
+            </div>
+
+            <!-- Volume by muscle group -->
+            <div class="bg-surface-raised border border-surface-border rounded-card p-5">
+              <div class="flex items-baseline justify-between mb-4">
+                <p class="text-gray-300 text-sm font-semibold">Volume by Muscle Group</p>
+                <p class="text-gray-600 text-[10px] uppercase tracking-widest">All time</p>
+              </div>
+
+              <?php if (empty($muscleVolume)): ?>
+                <p class="text-gray-600 text-sm py-8 text-center">Log some sets to see your volume split.</p>
+              <?php else: ?>
+                <div class="flex flex-col gap-3">
+                  <?php foreach ($muscleVolume as $m):
+                    $pct   = $maxVol > 0 ? max(2, (int) round((float)$m['volume'] / $maxVol * 100)) : 2;
+                    $color = $mgColors[$m['slug']] ?? 'bg-gray-500';
+                  ?>
+                    <div>
+                      <div class="flex justify-between items-baseline text-xs mb-1">
+                        <span class="text-gray-300"><?= htmlspecialchars($m['muscle_group']) ?></span>
+                        <span class="text-gray-500">
+                          <?= number_format((float)$m['volume'], 0, '.', ' ') ?> kg
+                          <span class="text-gray-600">· <?= (int)$m['sets'] ?> sets</span>
+                        </span>
+                      </div>
+                      <div class="h-2 bg-surface-card rounded-full overflow-hidden">
+                        <div class="<?= $color ?> h-full rounded-full" style="width:<?= $pct ?>%"></div>
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php endif; ?>
+            </div>
+
           </div>
-          <div class="flex items-center gap-3">
-            <a href="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>"
-              class="inline-flex items-center gap-2 bg-brand-green text-surface-base font-bold uppercase tracking-widest text-xs px-4 py-2 rounded hover:opacity-90">
-              Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </a>
-            <form method="POST" action="/analytics/session/<?= htmlspecialchars($activeSession['id']) ?>/end">
-              <button type="submit"
-                class="border border-red-900 text-red-500 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded hover:bg-red-950 hover:text-red-300 focus-visible:outline-none">
-                End
-              </button>
-            </form>
-          </div>
-        </div>
+        </section>
       <?php endif; ?>
 
       <!-- Session history -->
       <section>
         <h2 class="text-white font-bold uppercase tracking-widest text-xs mb-4">Session History</h2>
 
-        <?php if (empty($sessions)): ?>
+        <?php if (empty($completed)): ?>
           <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
             <div class="w-16 h-16 rounded-card bg-surface-card border border-surface-border flex items-center justify-center">
               <i class="fa-solid fa-chart-simple text-2xl text-gray-600"></i>
             </div>
-            <p class="text-white font-bold">No sessions yet</p>
-            <p class="text-gray-500 text-sm max-w-xs">Start your first session and your training history will appear here.</p>
+            <p class="text-white font-bold">No completed sessions yet</p>
+            <p class="text-gray-500 text-sm max-w-xs">Finish a session and it will show up here with your training history.</p>
           </div>
         <?php else: ?>
           <div class="bg-surface-raised border border-surface-border rounded-card overflow-hidden">
@@ -111,16 +178,12 @@
                 </tr>
               </thead>
               <tbody>
-                <?php foreach ($sessions as $s):
-                  $start     = new DateTime($s['started_at']);
-                  $isActive  = $s['ended_at'] === null;
-                  $durLabel  = '—';
-                  if (!$isActive) {
-                      $totalSec = (new DateTime($s['ended_at']))->getTimestamp() - $start->getTimestamp();
-                      $mins     = (int)($totalSec / 60);
-                      $secs     = $totalSec % 60;
-                      $durLabel = $mins . ' min ' . $secs . ' s';
-                  }
+                <?php foreach ($completed as $s):
+                  $start    = new DateTime($s['started_at']);
+                  $totalSec = (new DateTime($s['ended_at']))->getTimestamp() - $start->getTimestamp();
+                  $mins     = (int)($totalSec / 60);
+                  $secs     = $totalSec % 60;
+                  $durLabel = $mins . ' min ' . $secs . ' s';
                 ?>
                   <tr class="border-b border-surface-border last:border-0 hover:bg-surface-card/50">
                     <td class="px-4 py-3">
@@ -130,34 +193,20 @@
                     <td class="px-4 py-3 text-sm <?= !empty($s['plan_name']) ? 'text-white' : 'text-gray-600' ?>">
                       <?= htmlspecialchars($s['plan_name'] ?? '—') ?>
                     </td>
-                    <td class="px-4 py-3 text-sm <?= $isActive ? 'text-gray-600' : 'text-white' ?>">
+                    <td class="px-4 py-3 text-sm text-white">
                       <?= $durLabel ?>
                     </td>
                     <td class="px-4 py-3">
-                      <?php if ($isActive): ?>
-                        <span class="bg-brand-green/10 text-brand-green border border-brand-green/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
-                          Active
-                        </span>
-                      <?php else: ?>
-                        <span class="bg-gray-700/20 text-gray-400 border border-gray-600/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
-                          Done
-                        </span>
-                      <?php endif; ?>
+                      <span class="bg-gray-700/20 text-gray-400 border border-gray-600/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                        Done
+                      </span>
                     </td>
                     <td class="px-4 py-3 text-right">
-                      <div class="flex items-center justify-end gap-3">
-                        <?php if ($isActive): ?>
-                          <a href="/analytics/session/<?= htmlspecialchars($s['id']) ?>"
-                            class="text-brand-green text-xs hover:underline">
-                            Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                          </a>
-                        <?php endif; ?>
-                        <button type="button"
-                          onclick="showDeleteModal('<?= htmlspecialchars($s['id']) ?>', '<?= htmlspecialchars(addslashes($s['started_at'])) ?>')"
-                          class="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors focus-visible:outline-none">
-                          <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
-                      </div>
+                      <button type="button"
+                        onclick="showDeleteModal('<?= htmlspecialchars($s['id']) ?>', '<?= htmlspecialchars(addslashes($s['started_at'])) ?>')"
+                        class="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors focus-visible:outline-none">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                      </button>
                     </td>
                   </tr>
                 <?php endforeach; ?>

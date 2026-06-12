@@ -16,6 +16,7 @@ CREATE TABLE users (
     is_active     BOOLEAN     NOT NULL DEFAULT TRUE,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_login_at TIMESTAMPTZ,
     CONSTRAINT users_email_format CHECK (email ~ '^[^@]+@[^@]+\.[^@]+$')
 );
 
@@ -125,6 +126,7 @@ CREATE TABLE session_exercises (
     exercise_id            UUID     REFERENCES exercises(id) ON DELETE SET NULL,
     exercise_name_snapshot TEXT     NOT NULL,
     position               SMALLINT NOT NULL,
+    is_completed           BOOLEAN  NOT NULL DEFAULT FALSE,
     UNIQUE (session_id, position)
 );
 CREATE INDEX idx_session_exercises_session  ON session_exercises(session_id);
@@ -157,6 +159,21 @@ CREATE TRIGGER trg_users_updated BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
 CREATE TRIGGER trg_plans_updated BEFORE UPDATE ON workout_plans
     FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+
+-- ---------- TRIGGER: stamp session ended_at ---------------------------------
+
+CREATE OR REPLACE FUNCTION stamp_session_ended_at() RETURNS TRIGGER AS $$
+BEGIN
+    -- Gdy sesja przechodzi z 'in_progress' na completed/aborted, znacz czas zakończenia.
+    IF NEW.status <> 'in_progress' AND NEW.ended_at IS NULL THEN
+        NEW.ended_at = NOW();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sessions_stamp_ended BEFORE UPDATE ON sessions
+    FOR EACH ROW EXECUTE FUNCTION stamp_session_ended_at();
 
 -- ---------- ROW-LEVEL SECURITY ----------------------------------------------
 
@@ -195,6 +212,20 @@ CREATE POLICY session_sets_owner ON session_sets
                    WHERE se.id = session_sets.session_exercise_id
                      AND s.user_id = current_setting('app.current_user_id', true)::uuid));
 
+-- ---------- VIEWS -----------------------------------------------------------
+
+-- Zagregowane statystyki kont dla panelu administratora.
+CREATE VIEW user_stats AS
+SELECT u.id, u.email, u.display_name, u.role, u.is_active,
+       u.created_at, u.last_login_at,
+       COUNT(DISTINCT wp.id)                                       AS plans_count,
+       COUNT(DISTINCT s.id) FILTER (WHERE s.status = 'completed')  AS completed_sessions,
+       MAX(s.started_at)                                           AS last_activity_at
+FROM users u
+LEFT JOIN workout_plans wp ON wp.user_id = u.id
+LEFT JOIN sessions s       ON s.user_id  = u.id
+GROUP BY u.id;
+
 -- ---------- SEED: muscle groups ---------------------------------------------
 
 INSERT INTO muscle_groups (id, name, slug) VALUES
@@ -204,3 +235,75 @@ INSERT INTO muscle_groups (id, name, slug) VALUES
     (4, 'Shoulders', 'shoulders'),
     (5, 'Arms',      'arms'),
     (6, 'Core',      'core');
+
+-- ---------- SEED: exercise catalogue -----------------------------------------
+-- Resolves muscle_group_slug -> id via join so it stays correct if ids change.
+
+INSERT INTO exercises (muscle_group_id, name, exercise_type, description)
+SELECT mg.id, v.name, v.exercise_type, v.description
+FROM (VALUES
+    ('chest', 'Bench Press', 'compound', 'Classic horizontal barbell press. Lie flat on a bench, lower the bar to mid-chest, press back up. Primary chest builder.'),
+    ('chest', 'Incline Bench Press', 'compound', 'Barbell or dumbbell press on a 30-45° incline. Emphasises the upper portion of the pectorals.'),
+    ('chest', 'Decline Bench Press', 'compound', 'Press performed on a downward-angled bench. Targets the lower chest and allows heavier loads than flat pressing.'),
+    ('chest', 'Dumbbell Flye', 'isolation', 'Lying dumbbell fly with a slight elbow bend. Stretches and contracts the pectorals through a wide arc.'),
+    ('chest', 'Cable Crossover', 'isolation', 'High-to-low or level cable fly. Provides constant tension across the full range of motion.'),
+    ('chest', 'Push-Up', 'compound', 'Bodyweight pressing movement. Engages chest, anterior delts, and triceps. Scalable via elevation or resistance bands.'),
+    ('chest', 'Chest Dip', 'compound', 'Parallel-bar dip with a slight forward lean to maximise pectoral stretch and activation.'),
+    ('chest', 'Pec Deck', 'isolation', 'Machine fly that isolates the pectorals without requiring stabilisation. Good for mind-muscle connection work.'),
+    ('back', 'Deadlift', 'compound', 'Barbell pull from the floor. Full posterior-chain movement — lats, spinal erectors, glutes, hamstrings. Foundation of strength training.'),
+    ('back', 'Pull-Up', 'compound', 'Overhand-grip bodyweight vertical pull. Targets lats, rhomboids, and biceps. Add weight via belt for progression.'),
+    ('back', 'Barbell Row', 'compound', 'Bent-over barbell row with overhand or underhand grip. Builds thickness in the mid and upper back.'),
+    ('back', 'Lat Pulldown', 'compound', 'Cable pulldown to the upper chest. Develops lat width. Use a wide or neutral grip for different emphases.'),
+    ('back', 'Seated Cable Row', 'compound', 'Horizontal cable row from a seated position. Targets the mid-back, rhomboids, and rear delts.'),
+    ('back', 'Single-Arm Dumbbell Row', 'compound', 'Unilateral row braced against a bench. Allows a longer range of motion and corrects side-to-side imbalances.'),
+    ('back', 'Face Pull', 'isolation', 'Cable pull to the face with rope attachment. Primarily targets rear delts and external rotators. Shoulder health essential.'),
+    ('back', 'T-Bar Row', 'compound', 'Landmine or dedicated T-bar row. Allows heavy loading with a neutral spine. Great for back thickness.'),
+    ('legs', 'Squat', 'compound', 'Barbell back squat — the king of lower-body exercises. Trains quads, glutes, and entire posterior chain under heavy load.'),
+    ('legs', 'Romanian Deadlift', 'compound', 'Hip-hinge movement keeping the bar close to the legs. Primary hamstring and glute stretch-under-load exercise.'),
+    ('legs', 'Leg Press', 'compound', 'Machine-based quad-dominant press. Allows heavy loading without spinal compression. Foot position shifts emphasis.'),
+    ('legs', 'Leg Curl', 'isolation', 'Lying or seated machine curl that isolates the hamstrings. Key accessory for knee health and hamstring development.'),
+    ('legs', 'Leg Extension', 'isolation', 'Quad isolation via machine knee extension. Useful for VMO development and rehabilitation work.'),
+    ('legs', 'Standing Calf Raise', 'isolation', 'Plantarflexion against load. Targets the gastrocnemius. Full stretch at the bottom is essential for hypertrophy.'),
+    ('legs', 'Lunge', 'compound', 'Unilateral step movement targeting quads and glutes. Walking, reverse, or static variations each have different demands.'),
+    ('legs', 'Bulgarian Split Squat', 'compound', 'Rear-foot-elevated split squat. High quad and glute demand. Exposes and corrects limb asymmetries.'),
+    ('legs', 'Hack Squat', 'compound', 'Machine or barbell squat variation with an upright torso. Shifts load further onto the quads.'),
+    ('shoulders', 'Overhead Press', 'compound', 'Standing barbell press overhead. Primary shoulder mass builder. Also loads the upper chest and triceps.'),
+    ('shoulders', 'Dumbbell Shoulder Press', 'compound', 'Seated or standing dumbbell press. Allows greater range of motion than the barbell version and corrects imbalances.'),
+    ('shoulders', 'Lateral Raise', 'isolation', 'Dumbbell or cable raise to shoulder height. Targets the medial deltoid — essential for shoulder width.'),
+    ('shoulders', 'Front Raise', 'isolation', 'Dumbbell raise to the front. Targets the anterior deltoid. Often deprioritised since pressing movements cover front delts well.'),
+    ('shoulders', 'Rear Delt Fly', 'isolation', 'Bent-over or machine fly targeting the posterior deltoid. Critical for shoulder balance and posture.'),
+    ('shoulders', 'Arnold Press', 'compound', 'Dumbbell press with a rotational component through the full range. Hits anterior and medial delts through a longer arc.'),
+    ('shoulders', 'Upright Row', 'compound', 'Barbell or cable pull to the chin with elbows flared. Trains medial delts and upper traps together.'),
+    ('shoulders', 'Cable Lateral Raise', 'isolation', 'Single-arm lateral raise using a low cable pulley. Maintains tension at the bottom of the movement unlike dumbbells.'),
+    ('arms', 'Barbell Curl', 'isolation', 'Standing supinated curl with a barbell. Primary biceps mass exercise. Allows the heaviest loading of any curl variation.'),
+    ('arms', 'Hammer Curl', 'isolation', 'Neutral-grip dumbbell curl. Targets the brachialis and brachioradialis alongside the biceps. Adds arm thickness.'),
+    ('arms', 'Incline Dumbbell Curl', 'isolation', 'Curl performed on an incline bench with arms hanging behind the torso. Maximises the long head stretch of the biceps.'),
+    ('arms', 'Preacher Curl', 'isolation', 'Curl with the upper arm braced on a preacher pad. Eliminates cheat and emphasises the peak contraction.'),
+    ('arms', 'Tricep Pushdown', 'isolation', 'Cable pushdown with rope or bar attachment. Isolates the triceps through elbow extension. High rep finishing move.'),
+    ('arms', 'Skull Crusher', 'isolation', 'Lying EZ-bar or dumbbell extension lowering toward the forehead. Effective for tricep mass — especially the long head.'),
+    ('arms', 'Close-Grip Bench Press', 'compound', 'Bench press with a shoulder-width grip. Allows heavy tricep loading. Overlaps with chest but tricep emphasis is primary.'),
+    ('arms', 'Overhead Tricep Extension', 'isolation', 'Dumbbell or cable extension with arms overhead. Stretches the long head of the triceps — best for overall tricep mass.'),
+    ('arms', 'Tricep Dip', 'compound', 'Parallel-bar dip performed upright. Heavy bodyweight or weighted tricep exercise with carryover to pressing strength.'),
+    ('core', 'Plank', 'mobility', 'Isometric hold with a straight body from head to heels. Builds anti-extension core stability. Foundation movement.'),
+    ('core', 'Ab Wheel Rollout', 'compound', 'Rolling the ab wheel forward from a kneeling position. High demand on the rectus abdominis and anti-extension capability.'),
+    ('core', 'Hanging Leg Raise', 'isolation', 'Leg raise from a dead hang. Targets the lower abs and hip flexors. Keep the pelvis posteriorly tilted at the top.'),
+    ('core', 'Cable Crunch', 'isolation', 'Kneeling crunch using a cable overhead. Allows progressive overload on the rectus abdominis unlike bodyweight crunches.'),
+    ('core', 'Russian Twist', 'isolation', 'Seated rotation holding a weight. Trains the obliques. Add a plate or medicine ball for progressive resistance.'),
+    ('core', 'Crunch', 'isolation', 'Basic spinal flexion from the floor. Targets upper rectus abdominis. High reps or add a plate for resistance.'),
+    ('core', 'Dead Bug', 'mobility', 'Supine alternating arm-leg extension. Trains core stability and anti-extension without spinal loading. Rehab-friendly.'),
+    ('core', 'Pallof Press', 'isolation', 'Anti-rotation cable press. Resists rotational force, training the obliques isometrically. Underrated core stability exercise.')
+) AS v(slug, name, exercise_type, description)
+JOIN muscle_groups mg ON mg.slug = v.slug
+ON CONFLICT (muscle_group_id, name) DO NOTHING;
+
+-- ---------- SEED: default administrator -------------------------------------
+-- A ready-to-use admin account so the admin panel works on a fresh start.
+-- Login: admin@gym.local  /  admin12345
+INSERT INTO users (email, password_hash, display_name, role)
+VALUES (
+    'admin@gym.local',
+    '$2y$10$6b1zIMQTGNpXoG8J64tPCuvvN2ZesP2NPTCL.3784KbaX1EBeJ/v2',
+    'Administrator',
+    'admin'
+)
+ON CONFLICT (email) DO NOTHING;

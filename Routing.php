@@ -5,6 +5,7 @@ require_once 'src/controllers/DashboardController.php';
 require_once 'src/controllers/WorkoutsController.php';
 require_once 'src/controllers/ExercisesController.php';
 require_once 'src/controllers/AnalyticsController.php';
+require_once 'src/controllers/AdminController.php';
 
 // TODO musimy zapewnic, ze utworzony 
 // obiekt kontrollera ma tylko jedna instancję - SINGLETON
@@ -31,6 +32,10 @@ class Routing {
             "controller" => "DashboardController",
             "action" => "apiActiveSession"
         ],
+        "^dashboard/session/start$" => [
+            "controller" => "DashboardController",
+            "action" => "startSession"
+        ],
         // ^dashboard/([0-9]+)$ wyłapie dashboard/ oraz cyfry po ukośniku
         "^dashboard/([0-9]+)$" => [
             "controller" => "DashboardController",
@@ -40,15 +45,11 @@ class Routing {
             "controller" => "AnalyticsController",
             "action" => "index"
         ],
-        "^analytics/session/start$" => [
-            "controller" => "AnalyticsController",
-            "action" => "startSession"
-        ],
         "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$" => [
             "controller" => "AnalyticsController",
             "action" => "activeSession"
         ],
-        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(end|add-exercise|log-set|delete)$" => [
+        "^analytics/session/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(end|add-exercise|log-set|delete|save-set|finish-exercise)$" => [
             "controller" => "AnalyticsController",
             "action" => "handleSession"
         ],
@@ -68,9 +69,17 @@ class Routing {
             "controller" => "WorkoutsController",
             "action" => "detail"
         ],
-        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(add-exercise|remove-exercise|delete)$" => [
+        "^workouts/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(add-exercise|remove-exercise|delete|status)$" => [
             "controller" => "WorkoutsController",
             "action" => "handleExercise"
+        ],
+        "^admin/stats$" => [
+            "controller" => "AdminController",
+            "action" => "index"
+        ],
+        "^admin/users/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(ban|unban)$" => [
+            "controller" => "AdminController",
+            "action" => "handleUser"
         ],
         "^register$" => [
             "controller" => "SecurityController",
